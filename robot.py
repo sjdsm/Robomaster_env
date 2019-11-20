@@ -17,7 +17,7 @@ class Team(Enum):
 
 class Pose():
     def __init__(self, pose=[0,0,0], linear_speed=[0,0], angular_speed=0):
-        #TODO: A pose class in utils, a pose+vel calss in utils
+        #TODO: A pose class in utils, a pose+vel calss in utils(refer to nav_msgs/Odometry)
         self.chassis.x = pose[0]
         self.chassis.y = pose[1]
         self.chassis.theta = pose[2]
