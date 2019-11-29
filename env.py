@@ -87,9 +87,25 @@ class RMAI_GAME():
                         continue
                     elif f.type == REGION.REDBULLET:
                         self.robots[0].add_bullet()
+                        self.robots[1].add_bullet()
+                        f.set_type(REGION.FREE)
+                    elif f.type == REGION.BLUEBULLET:
+                        self.robots[2].add_bullet()
+                        self.robots[3].add_bullet()
+                        f.set_type(REGION.FREE)
+                    elif f.type == REGION.REDHEALTH:
+                        self.robots[0].add_health()
+                        self.robots[1].add_bullet()
+                        f.set_type(REGION.FREE)
+                    elif f.type == REGION.BLUEHEALTH:
+                        self.robots[2].add_health()
+                        self.robots[3].add_bullet()
                         f.set_type(REGION.FREE)
                     elif f.type == REGION.NOMOVING:
                         robo.disable_moving(self.time)
+                        f.set_type(REGION.FREE)
+                    else:
+                        robo.disable_shooting(self.time)
                         f.set_type(REGION.FREE)
                     #TODO: elif......
             
