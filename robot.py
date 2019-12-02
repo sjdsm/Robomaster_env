@@ -16,12 +16,15 @@ class Team(Enum):
     BLUE = 1
 
 class Pose():
-    def __init__(self, pose=[0,0,0], linear_speed=[0,0], angular_speed=0):
+    def __init__(self, pose=[0,0,0], linear_speed=[0,0], angular_speed=[0]):
         #TODO: A pose class in utils, a pose+vel calss in utils(refer to nav_msgs/Odometry)
         self.chassis.x = pose[0]
         self.chassis.y = pose[1]
         self.chassis.theta = pose[2]
-        #TODO: speed, L,W,H
+        self.speed = linear_speed + angular_speed
+        self.length = 600
+        self.width = 600
+        self.height = 500
         self.gimbal = self.chassis
 
 class Robot_State():
@@ -57,20 +60,24 @@ class Robot():
         if self.ally_state.alive == True:
             self.ally_state.bullet += num
 
-    #TODO:def add_health(self, num=200):
+    def add_health(self, num=200):
+        self.state.health += num
+        if self.ally_state.alive == True:
+            self.ally_state.bullet += num
+        
 
-    def shoot(self, angle):
-        if angle < 0:
+    def shoot(self, angle,velocity):
+        if angle < 0 or not self.state.can_shoot:
             return
-        if not self.state.can_shoot:
-            return
-        #TODO: self.heat +=
         if np.fabs(angle, self.state.chasis_pose.theta) > 20:
             # aiming
             self.state.bullet -= 1
             return
         else:
             self.state.bullet -= 1
+        self.state.heat += velocity
+        if self.ally_state.alive == True:
+            self.ally_state.heat += velocity
         # TODO: success rate of shooting considering distance and velocity
 
     def disable_moving(self, time):
