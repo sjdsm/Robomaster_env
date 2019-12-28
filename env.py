@@ -5,44 +5,6 @@ from robot import Armor, Team, Robot_State, Robot, Pose
 DURATION = 180 # length of a game
 FREQUENCY = 50
 
-class REGION(Enum):
-    FREE = 0
-    OBSTACLE = 1
-    BOOT = 2
-    # functional areas:F1-F6
-    REDBULLET = 3
-    REDHEALTH = 4
-    BLUEBULLET = 5
-    BULEHEALTH = 6
-    NOMOVING = 7
-    NOSHOOT = 8
-
-class Rectangle():
-    def __init__(self, initx, inity, x, y, type=REGION.OBSTACLE):
-        self.x = [initx, initx + x]
-        self.y = [inity, inity + y]
-        self.type = type
-
-    def inside(self, pointx, pointy):
-        if pointx > self.x[0] and pointx < self.x[1]:
-            if pointy > self.y[0] and pointx < self.y[1]:
-                return True
-        return False
-
-    def set_type(self, type):
-        self.type = type
-
-def build_map():
-    obstacle_list = []
-    obstacle_list.append([Rectangle(0,0,1,1)])
-    #... all the obstacles
-    F_list = []
-    F_list.append([Rectangle(0,0,1,1, type=REGION.FREE)])
-    #.. all funtional areas
-    boot_areas = []
-    boot_areas.append([Rectangle(0,0,1,1)])
-    return obstacle_list, F_list, boot_areas
-
 class RMAI_GAME():
     def __init__(self):
         self.duration = DURATION
