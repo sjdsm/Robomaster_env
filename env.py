@@ -1,6 +1,7 @@
 from enum import Enum
 from map import RM_map
 from robot import Armor, Team, Robot_State, Robot, Pose
+import time
 
 DURATION = 180 # length of a game
 FREQUENCY = 50
@@ -8,18 +9,10 @@ FREQUENCY = 50
 class RMAI_GAME():
     def __init__(self):
         self.duration = DURATION
-        self.time = 0
+        self.start_time = time.time()
         self.last_time = 0
         self.map = RM_map()
-        self.robot_r0 = Robot(team=Team.RED, position=self.map.bootareas[0], num=0, on=True, alive=True)
-        self.robot_r1 = Robot(team=Team.RED, position=self.map.bootareas[1], num=1, on=True, alive=True)
-        self.robot_b0 = Robot(team=Team.BLUE, position=self.map.bootareas[2], num=0, on=True, alive=True)
-        self.robot_b1 = Robot(team=Team.BLUE, position=self.map.bootareas[3], num=1, on=True, alive=True)
-        self.robots = [self.robot_r0, self.robot_r1, self.robot_b0, self.robot_b1]
-        self.robots[0].ally_state = self.robots[1].state
-        self.robots[1].ally_state = self.robots[0].state
-        self.robots[2].ally_state = self.robots[3].state
-        self.robots[3].ally_state = self.robots[2].state
+        self.reset()
 
     def step(self, linear_speeds, angular_speeds, gimbal_speeds, shoot_commands):
         '''
@@ -33,14 +26,17 @@ class RMAI_GAME():
         # 2. update everything (using gazebo callback)
 
         # 3. reset map if needed
-        if int(self.time / 60) > int(self.last_time / 60):
+        self.last_time = time.time()-self.start_time
+        if self.last_time // 60 == 1 or 2:
             self.map.randomlize()
-        self.last_time = self.time
+        
         
         # 4. step robot
         for i, robo in enumerate(self.robots):
             if robo.state.alive == False:
                 continue
+            # 4.0 position update
+            
 
             # 4.1 funcional areas
             for f in self.map.fareas:
@@ -64,16 +60,15 @@ class RMAI_GAME():
                         self.robots[3].add_bullet()
                         f.set_type(REGION.FREE)
                     elif f.type == REGION.NOMOVING:
-                        robo.disable_moving(self.time)
+                        robo.disable_moving(time.time())
                         f.set_type(REGION.FREE)
                     else:
-                        robo.disable_shooting(self.time)
-                        f.set_type(REGION.FREE)
-                    #TODO: elif......
+                        robo.disable_shooting(time.time())
+                        f.set_type(REGION.FREE)    
             
             # 4.2 punish state update
             if not robo.state.can_move:
-                if (self.time - robo.state.cant_move_time) > 10:
+                if (time.time() - robo.state.cant_move_time) > 10:
                     robo.disdisable_moving()
             if not robo.state.can_shoot:
                 if (self.time - robo.state.cant_shoot_time) > 10:
@@ -98,7 +93,7 @@ class RMAI_GAME():
         return done
 
     def done(self):
-        if self.time >= DURATION:
+        if self.last_time >= DURATION:
             return True
         if not self.robots[0].state.alive() and not self.robots[1].state.alive():
             return True
@@ -109,7 +104,7 @@ class RMAI_GAME():
         self.time = 0
         self.last_time = 0
         self.map.reset()
-        self.robot_r0 = Robot(team=Team.RED, position=self.map.bootareas[0], num=0, on=True, alive=True)
+        self.robot_r0 = Robot(team=Team.RED, position=self.map.bootareas[0], num=0, on=True, alive=True) # position: rectangle
         self.robot_r1 = Robot(team=Team.RED, position=self.map.bootareas[1], num=1, on=True, alive=True)
         self.robot_b0 = Robot(team=Team.BLUE, position=self.map.bootareas[2], num=0, on=True, alive=True)
         self.robot_b1 = Robot(team=Team.BLUE, position=self.map.bootareas[3], num=1, on=True, alive=True)
