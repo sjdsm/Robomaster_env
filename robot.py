@@ -16,19 +16,21 @@ class Team(Enum):
     BLUE = 1
 
 class Pose():
-    def __init__(self, pose=[0,0,0], linear_speed=[0,0], angular_speed=[0]):
+    def __init__(self, position=[0,0,0], linear_speed=[0,0], angular_speed=[0]):
         #TODO: A pose class in utils, a pose+vel calss in utils(refer to nav_msgs/Odometry)
-        self.chassis.x = pose[0]
-        self.chassis.y = pose[1]
-        self.chassis.theta = pose[2]
+        # self.chassis.x = position[0]
+        # self.chassis.y = position[1]
+        # self.chassis.theta = position[2]
+        self.chassis_position = position
         self.speed = linear_speed + angular_speed
         self.length = 600
         self.width = 600
         self.height = 500
-        self.gimbal = self.chassis
+        self.gimbal_angle = 0
+        self.gimbal_shoot_speed = 0
 
 class Robot_State():
-    def __init__(self, team=Team.BLUE, position=Pose(), num=0, on=False, alive=False):
+    def __init__(self, team=Team.BLUE, num=0, on=False, alive=False，position=[0,0,0]): # position: (x,y,theta)
         self.on = on      # do we have this robot in our simulator
         self.alive = alive      
         self.team = team
@@ -36,16 +38,16 @@ class Robot_State():
         self.health = 2000
         self.bullet = 0
         self.heat = 0
-        self.position = position
+        # self.position = position
         self.can_move = True
         self.cant_move_time = 0 # the beginning time of no moving condition
         self.can_shoot = True
         self.cant_shoot_time = 0
-        self.chasis_pose = Pose(pose=position)
+        self.pose = Pose(position=position)
 
 
 class Robot():
-    def __init__(self, team, num=1, on=True, alive=True, position=[0,0]):
+    def __init__(self, team, num=1, on=True, alive=True, position=[0,0,0]):
         self.state = Robot_State(team, num, on, alive, position)
         self.ally_state = Robot_State()
 
@@ -72,10 +74,15 @@ class Robot():
         if np.fabs(angle, self.state.chasis_pose.theta) > 20:
             # aiming
             self.state.bullet -= 1
-            return
         else:
             self.state.bullet -= 1
         self.state.heat += velocity
+        if 25 < velocity < 30:
+            self.add_health(-200)
+        elif 30 <= velocity <= 35:
+            self.add_health(-1000)
+        elif velocity > 35:
+            self.add_health(-2000)
         if self.ally_state.alive == True:
             self.ally_state.heat += velocity
         # TODO: success rate of shooting considering distance and velocity
