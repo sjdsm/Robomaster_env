@@ -6,6 +6,13 @@ import time
 DURATION = 180 # length of a game
 FREQUENCY = 50
 
+class Armor(Enum):
+    FRONT = 1
+    LEFT = 2
+    RIGHT = 2
+    BACK = 3
+  
+
 class RMAI_GAME():
     def __init__(self):
         self.duration = DURATION
@@ -14,7 +21,7 @@ class RMAI_GAME():
         self.map = RM_map()
         self.reset()
 
-    def step(self, linear_speeds, angular_speeds, gimbal_speeds, shoot_commands):
+    def step(self, linear_speeds, angular_speeds, gimbal_speeds, shoot_commands, attacked_Armor):# default order: red0,red1,blue0,blue1
         '''
         linear_speeds: linear speed of 4 robots' chassis, default = 0
         angular_speeds: angular_speeds speed of 4 robots' chassis, default = 0
@@ -36,7 +43,7 @@ class RMAI_GAME():
             if robo.state.alive == False:
                 continue
             # 4.0 position update
-            
+            robo.state.pose.chassis_position = position[i]
 
             # 4.1 funcional areas
             for f in self.map.fareas:
@@ -76,18 +83,30 @@ class RMAI_GAME():
 
             # 4.3 shooting
             robo.shoot(shoot_commands[i])
-
-            # 4.4 heating damage
+            
+            # 4.4 health update
+              # 4.4.1 heating damage
             if robo.state.heat > 240:
-                robo.state.health -= (robo.state.heat - 240) * 4 * 10 / FREQUENCY
-            if robo.state.heat > 360:
-                robo.state.health -= 2000
+                robo.add_health(-(robo.state.heat - 240) * 4 ) 
+            elif robo.state.heat > 360:
+                robo.add_health(-(robo.state.heat - 360) * 40) 
+                robo.state.heat = 360
+              # 4.4.2 attacked_damage
+            if attacked_Armor[i] == 1:
+                robo.add_health(-20)
+            elif attacked_Armor[i] == 2:
+                robo.add_health(-40)
+            elif attacked_Armor[i] == 3:  
+                robo.add_health(-60)
             
         # 5 kill dead robot
-        for i, robo in enumerate(self.robots):
             if robo.state.health <= 0:
                 robo.kill()
-
+                
+        # 6 heat cooldown
+            cooldown_value = 240 if robo.state.health < 400 else 120
+            robo.state.heat = robo.state.heat > cooldown_valeu / FREQUENCY and robo.state.heat - cooldown_valeu / FREQUENCY or 0
+            
         done = self.done()
         # ignore: collision punishment
         return done
