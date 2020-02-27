@@ -21,12 +21,12 @@ class RMAI_GAME():
         self.map = RM_map()
         self.reset()
 
-    def step(self, linear_speeds, angular_speeds, gimbal_speeds, shoot_commands, attacked_Armor):# default order: red0,red1,blue0,blue1
+    def step(self, linear_speeds, angular_speeds, gimbal_speeds, shoot_commands):# default order: red0,red1,blue0,blue1
         '''
         linear_speeds: linear speed of 4 robots' chassis, default = 0
         angular_speeds: angular_speeds speed of 4 robots' chassis, default = 0
         gimbal_speeds: angular_speeds speed of 4 robots' gimbal, default = 0
-        shoot_commands: shooting commands of 4 robots, containing shooting direction(0-360), default = -100 means no shooting
+        shoot_commands: [{'taget':i，'armor':j,'shooting_direction':0-360,'laser_direction':0-360,'velocity':num},{},{},{}]  shooting commands of 4 robots, containing shooting direction(0-360), default = -100 means no shooting
         '''
         # 1. send velocities to physical simulator
 
@@ -82,7 +82,9 @@ class RMAI_GAME():
                     robo.disdisable_shooting()
 
             # 4.3 shooting
-            robo.shoot(shoot_commands[i])
+            if robo.shoot(shoot_commands[i]['velocity']):
+                if abs(shoot_commands[i]['shooting_direction']-shoot_commands[i]['laser_direction']) < 20:
+                    self.robots[shoot_commands[i]['taget']].add_health(shoot_commands[i]['armor'] * 20)
             
             # 4.4 health update
               # 4.4.1 heating damage
@@ -91,19 +93,12 @@ class RMAI_GAME():
             elif robo.state.heat > 360:
                 robo.add_health(-(robo.state.heat - 360) * 40) 
                 robo.state.heat = 360
-              # 4.4.2 attacked_damage
-            if attacked_Armor[i] == 1:
-                robo.add_health(-20)
-            elif attacked_Armor[i] == 2:
-                robo.add_health(-40)
-            elif attacked_Armor[i] == 3:  
-                robo.add_health(-60)
             
-        # 5 kill dead robot
+            # 4.5 kill dead robot
             if robo.state.health <= 0:
                 robo.kill()
                 
-        # 6 heat cooldown
+            # 4.6 heat cooldown
             cooldown_value = 240 if robo.state.health < 400 else 120
             robo.state.heat = robo.state.heat > cooldown_valeu / FREQUENCY and robo.state.heat - cooldown_valeu / FREQUENCY or 0
             
