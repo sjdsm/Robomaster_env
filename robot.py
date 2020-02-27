@@ -68,14 +68,10 @@ class Robot():
             self.ally_state.bullet += num
         
 
-    def shoot(self, angle,velocity):
-        if angle < 0 or not self.state.can_shoot:
-            return
-        if np.fabs(angle, self.state.chasis_pose.theta) > 20:
-            # aiming
-            self.state.bullet -= 1
-        else:
-            self.state.bullet -= 1
+    def shoot(self, velocity):
+        if not self.state.can_shoot:
+            return False
+        self.state.bullet -= 1
         self.state.heat += velocity
         if 25 < velocity < 30:
             self.add_health(-200)
@@ -86,7 +82,8 @@ class Robot():
         if self.ally_state.alive == True:
             self.ally_state.heat += velocity
         # TODO: success rate of shooting considering distance and velocity
-
+        return True
+        
     def disable_moving(self, time):
         self.state.can_move = False
         self.state.cant_move_time = time
