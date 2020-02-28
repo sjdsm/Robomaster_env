@@ -3,6 +3,7 @@ from enum import Enum
 
 MAP_LENGTH = 8.1
 MAP_WIDTH = 5.1
+seed = 0
 
 class REGION(Enum):
     FREE = 0
@@ -17,9 +18,9 @@ class REGION(Enum):
     NOSHOOT = 8
 
 class Rectangle():
-    def __init__(self, initx, inity, x, y, type=REGION.OBSTACLE):
-        self.x = [initx, initx + x]
-        self.y = [inity, inity + y]
+    def __init__(self, location, type=REGION.OBSTACLE): # location: (initx, inity, x, y)
+        self.x = [location[0], location[0] + location[2]]
+        self.y = [location[1], location[1] + location[3]]
         self.type = type
 
     def inside(self, pointx, pointy):
@@ -33,25 +34,31 @@ class Rectangle():
 
 def build_map():
     obstacle_list = []
-    obstacle_list.append([Rectangle(0,0,1,1)])
+    for location in ():
+        obstacle_list.append(Rectangle(location))
     #... all the obstacles
     F_list = []
-    F_list.append([Rectangle(0,0,1,1, type=REGION.FREE)])
-    #.. all funtional areas
+    for location in ():
+        F_list.append(Rectangle(location, type=REGION.FREE)
+    # all funtional areas
     boot_areas = []
-    boot_areas.append([Rectangle(0,0,1,1)])     # red0, red1, blue0, blue1
+    for location in ((0,0,1,1),(7.1,0,1,1),(0,4.1,1,1),(7.1,4.1,1,1)):
+        boot_areas.append(Rectangle(location, type=REGION.FREE))   # red0, red1, blue0, blue1
+    
     return obstacle_list, F_list, boot_areas
 
 class RM_map():
     def __init__(self):
         self.length = 8.1
         self.width = 5.1
-        self.obstacles = [], self.fareas, self.bootareas = build_map()
+        self.obstacles, self.fareas, self.bootareas = build_map()
 
-    def randomlize(self):
+    def randomlize(self):    
+        seed 1+= seed
+        np.random.seed(seed)
+        # random seed
         order = np.array(range(6))
         np.random.shuffle(order)
-        #TODO: random seed
         self.fareas[order[0]].set_type(REGION.REDBULLET)
         self.fareas[order[1]].set_type(REGION.REDHEALTH)
         self.fareas[order[2]].set_type(REGION.BLUEBULLET)
