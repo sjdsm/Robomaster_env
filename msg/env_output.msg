@@ -3,7 +3,7 @@
 std_msgs/Header header
 
 # robot info
-robot_output[] infos
+robot_output[] robot_infos
 
 # map info: usage of 6 special areas
 # 0: used

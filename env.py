@@ -154,6 +154,8 @@ class RMAI_GAME():
             cooldown_value = 240 if robo.state.health < 400 else 120
             robo.state.heat = robo.state.heat > cooldown_value / FREQUENCY and robo.state.heat - cooldown_value / FREQUENCY or 0
             
+        self.publish_all()
+
         done = self.done()
         # ignore: collision punishment
         return done
@@ -226,6 +228,7 @@ class RMAI_GAME():
         # vel_info = vel_command_stack()
         info = env_output()
         info.map = []
+        info.robot_infos = []
         for i in self.map.fareas:
             info.map.append(Int8((i.type.value - 2)))
 
@@ -236,18 +239,6 @@ class RMAI_GAME():
             robot_info = robot_output()
             robot_info.frame_id = robot_key
 
-'''nav_msgs/Odometry chassis_odom
-# theta, w, dw
-geometry_msgs/Point gimbal_odom
-
-bool alive
-bool movable
-bool shootable
-
-uint16 health
-uint16 bullets
-uint16 heat
-'''
             robot_info.alive = robot.state.alive
             robot_info.movable = robot.state.can_move
             robot_info.shootable = robot.state.can_shoot
@@ -255,6 +246,14 @@ uint16 heat
             robot_info.health = robot.state.health
             robot_info.bullets = robot.state.bullet
             robot_info.heat = robot.state.heat
+
+            robot_info.chassis_odom.pose.pose.position = robot.state.pose.chassis_pose
+            robot_info.chassis_odom.twist.twist = robot.state.pose.chassis_speed
+            robot_info.gimbal_odom = robot.state.pose.gimbal_pose
+
+            info.robot_infos.append(robot_info)
+        
+        self.publish_info(info)
 
 
 if __name__ == "__main__":
