@@ -26,11 +26,11 @@ class RobotPose():
         self.gimbal_pose = Point()
 
 class RobotState():
-    def __init__(self, team=Team.BLUE, num=0, on=False, alive=False, position=[0,0,0]): # position: (x,y,theta)
+    def __init__(self, team=Team.BLUE, id=0, on=False, alive=False, position=[0,0,0]): # position: (x,y,theta)
         self.on = on      # do we have this robot in our simulator
         self.alive = alive      
         self.team = team
-        self.number = num    # 2 robots with num 0/1
+        self.id = id    # 2 robots with num 0/1
         self.health = 2000
         self.bullet = 0
         self.heat = 0
@@ -51,6 +51,7 @@ class Robot():
         self.state = RobotState(team, num, on, alive, position)
         self.ally = None
         self.enemies = []
+        self.shoot_command = False
 
     def kill(self):
         self.state.alive = False
@@ -71,17 +72,21 @@ class Robot():
             self.ally.state.bullet += num
         
 
-    def shoot(self, velocity):
+    def shoot(self, velocity=20):
+        self.shoot_command = 0
         if not self.state.can_shoot:
             return False
         self.state.bullet -= 1
         self.state.heat += velocity
-        if 25 < velocity < 30:
-            self.add_health(-200)
-        elif 30 <= velocity <= 35:
-            self.add_health(-1000)
-        elif velocity > 35:
-            self.add_health(-2000)
+
+        # # velocity punishment: no need
+        # if 25 < velocity < 30:
+        #     self.add_health(-200)
+        # elif 30 <= velocity <= 35:
+        #     self.add_health(-1000)
+        # elif velocity > 35:
+        #     self.add_health(-2000)
+
         # TODO: success rate of shooting considering distance and velocity
         return True
         

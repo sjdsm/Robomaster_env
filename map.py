@@ -7,10 +7,11 @@ MAP_WIDTH = 5.1
 RANDOMSEED = 0
 
 class Region(Enum):
-    FREE = 0
-    OBSTACLE = 1
-    BOOT = 2
+
+    OBSTACLE = 0
+    BOOT = 1
     # functional areas:F1-F6
+    FREE = 2
     REDBULLET = 3
     REDHEALTH = 4
     BLUEBULLET = 5
