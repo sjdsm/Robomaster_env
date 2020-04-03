@@ -1,5 +1,7 @@
 import numpy as np
 from enum import Enum
+import math
+
 
 ROBOT_L = 0.8
 ROBOT_W = 0.6
@@ -27,7 +29,13 @@ class Pose():
         self.width = 600
         self.height = 500
         self.gimbal_angle = 0
+        self.gimbal_laser_dis = 0
         self.gimbal_shoot_speed = 0
+        self.armor_angle = math.atan(1/3)
+        self.armor={'FRONT':[[position[0]+math.cos(position[2]+self.armor_angle),position[1]+math.sin(position[2]+self.armor_angle)],[position[0]+math.cos(position[2]-self.armor_angle),position[1]+math.sin(position[2]-self.armor_angle)], position[2]],
+                    'BACK'=[[position[0]+math.cos(position[2]+math.pi+self.armor_angle),position[1]+math.sin(position[2]+math.pi+self.armor_angle)],[position[0]+math.cos(position[2]+math.pi-self.armor_angle),position[1]+math.sin(position[2]+math.pi-self.armor_angle)], position[2]+math.pi if position[2]<math.pi else position[2]-math.pi ], 
+                    'LEFT'=[[position[0]+math.cos(position[2]+math.pi/2+self.armor_angle),position[1]+math.sin(position[2]+math.pi/2+self.armor_angle)],[position[0]+math.cos(position[2]+math.pi/2-self.armor_angle),position[1]+math.sin(position[2]+math.pi/2-self.armor_angle)], position[2]+math.pi/2 if position[2]<3/2*math.pi else position[2]+math.pi/2-2*math.pi], 
+                    'RIGHT'=[[position[0]+math.cos(position[2]-math.pi/2+self.armor_angle),position[1]+math.sin(position[2]-math.pi/2+self.armor_angle)],[position[0]+math.cos(position[2]-math.pi/2-self.armor_angle),position[1]+math.sin(position[2]-math.pi/2-self.armor_angle)],position[2]-math.pi/2 if position[2]>1/2*math.pi else position[2]+math.pi/2+2*math.pi]}
 
 class Robot_State():
     def __init__(self, team=Team.BLUE, num=0, on=False, alive=False，position=[0,0,0]): # position: (x,y,theta)
