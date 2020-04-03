@@ -25,6 +25,8 @@ class RobotPose():
         # gimbal pose: theta, w, dw
         self.gimbal_pose = Point()
         self.armor_angle = math.atan(1/3)
+        self.armor_set()
+    def armor_set:
         self.armor={'FRONT':[[self.chassis_pose.x+math.cos(self.chassis_pose.theta+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+self.armor_angle)],
                              [self.chassis_pose.x+math.cos(self.chassis_pose.theta-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-self.armor_angle)],
                              self.chassis_pose.theta],
