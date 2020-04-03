@@ -3,13 +3,14 @@ from enum import Enum
 
 MAP_LENGTH = 8.1
 MAP_WIDTH = 5.1
-seed = 0
+RANDOMSEED = 0
 
-class REGION(Enum):
-    FREE = 0
-    OBSTACLE = 1
-    BOOT = 2
+class Region(Enum):
+
+    OBSTACLE = 0
+    BOOT = 1
     # functional areas:F1-F6
+    FREE = 2
     REDBULLET = 3
     REDHEALTH = 4
     BLUEBULLET = 5
@@ -54,7 +55,8 @@ class RM_map():
         self.obstacles, self.fareas, self.bootareas = build_map()
 
     def randomlize(self):    
-        seed 1+= seed
+        global RANDOMSEED
+        RANDOMSEED += 1
         np.random.seed(seed)
         # random seed
         order = np.array(range(6))
