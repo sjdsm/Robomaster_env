@@ -1,7 +1,7 @@
 import numpy as np
 from enum import Enum
 import math
-
+from geometry_msgs.msg import Pose, Twist, Point
 
 ROBOT_L = 0.8
 ROBOT_W = 0.6
@@ -16,33 +16,34 @@ class Armor(Enum):
 class Team(Enum):
     RED = 0
     BLUE = 1
-
-class Pose():
+    
+class RobotPose():
     def __init__(self, position=[0,0,0], linear_speed=[0,0], angular_speed=[0]):
-        #TODO: A pose class in utils, a pose+vel calss in utils(refer to nav_msgs/Odometry)
-        # self.chassis.x = position[0]
-        # self.chassis.y = position[1]
-        # self.chassis.theta = position[2]
-        self.chassis_position = position
-        self.speed = linear_speed + angular_speed
-        self.length = 600
-        self.width = 600
-        self.height = 500
-        self.gimbal_angle = 0
-        self.gimbal_laser_dis = 0
-        self.gimbal_shoot_speed = 0
+        # x,y: robot center, theta: with X-axis
+        self.chassis_pose = Point()
+        self.chassis_speed = Twist()
+        # gimbal pose: theta, w, dw
+        self.gimbal_pose = Point()
         self.armor_angle = math.atan(1/3)
-        self.armor={'FRONT':[[position[0]+math.cos(position[2]+self.armor_angle),position[1]+math.sin(position[2]+self.armor_angle)],[position[0]+math.cos(position[2]-self.armor_angle),position[1]+math.sin(position[2]-self.armor_angle)], position[2]],
-                    'BACK'=[[position[0]+math.cos(position[2]+math.pi+self.armor_angle),position[1]+math.sin(position[2]+math.pi+self.armor_angle)],[position[0]+math.cos(position[2]+math.pi-self.armor_angle),position[1]+math.sin(position[2]+math.pi-self.armor_angle)], position[2]+math.pi if position[2]<math.pi else position[2]-math.pi ], 
-                    'LEFT'=[[position[0]+math.cos(position[2]+math.pi/2+self.armor_angle),position[1]+math.sin(position[2]+math.pi/2+self.armor_angle)],[position[0]+math.cos(position[2]+math.pi/2-self.armor_angle),position[1]+math.sin(position[2]+math.pi/2-self.armor_angle)], position[2]+math.pi/2 if position[2]<3/2*math.pi else position[2]+math.pi/2-2*math.pi], 
-                    'RIGHT'=[[position[0]+math.cos(position[2]-math.pi/2+self.armor_angle),position[1]+math.sin(position[2]-math.pi/2+self.armor_angle)],[position[0]+math.cos(position[2]-math.pi/2-self.armor_angle),position[1]+math.sin(position[2]-math.pi/2-self.armor_angle)],position[2]-math.pi/2 if position[2]>1/2*math.pi else position[2]+math.pi/2+2*math.pi]}
+        self.armor={'FRONT':[[self.chassis_pose.x+math.cos(self.chassis_pose.theta+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+self.armor_angle)],
+                             [self.chassis_pose.x+math.cos(self.chassis_pose.theta-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-self.armor_angle)],
+                             self.chassis_pose.theta],
+                    'BACK'=[[self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi+self.armor_angle)],
+                            [self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi-self.armor_angle)],
+                            self.chassis_pose.theta+math.pi if self.chassis_pose.theta<math.pi else self.chassis_pose.theta-math.pi ], 
+                    'LEFT'=[[self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi/2+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi/2+self.armor_angle)],
+                            [self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi/2-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi/2-self.armor_angle)], 
+                            self.chassis_pose.theta+math.pi/2 if self.chassis_pose.theta<3/2*math.pi else self.chassis_pose.theta+math.pi/2-2*math.pi], 
+                    'RIGHT'=[[self.chassis_pose.x+math.cos(self.chassis_pose.theta-math.pi/2+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-math.pi/2+self.armor_angle)],
+                             [self.chassis_pose.x+math.cos(self.chassis_pose.theta-math.pi/2-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-math.pi/2-self.armor_angle)],
+                             self.chassis_pose.theta-math.pi/2 if self.chassis_pose.theta>1/2*math.pi else self.chassis_pose.theta+math.pi/2+2*math.pi]}
 
-class Robot_State():
-    def __init__(self, team=Team.BLUE, num=0, on=False, alive=False，position=[0,0,0]): # position: (x,y,theta)
+class RobotState():
+    def __init__(self, team=Team.BLUE, id=0, on=False, alive=False, position=[0,0,0]): # position: (x,y,theta)
         self.on = on      # do we have this robot in our simulator
         self.alive = alive      
         self.team = team
-        self.number = num    # 2 robots with num 0/1
+        self.id = id    # 2 robots with num 0/1
         self.health = 2000
         self.bullet = 0
         self.heat = 0
@@ -51,13 +52,20 @@ class Robot_State():
         self.cant_move_time = 0 # the beginning time of no moving condition
         self.can_shoot = True
         self.cant_shoot_time = 0
-        self.pose = Pose(position=position)
+        self.pose = RobotPose(position=position)
+        self.laser_distance = 0
 
+        self.length = 600
+        self.width = 600
+        self.height = 500       
 
+        
 class Robot():
     def __init__(self, team, num=1, on=True, alive=True, position=[0,0,0]):
-        self.state = Robot_State(team, num, on, alive, position)
-        self.ally_state = Robot_State()
+        self.state = RobotState(team, num, on, alive, position)
+        self.ally = None
+        self.enemies = []
+        self.shoot_command = False
 
     def kill(self):
         self.state.alive = False
@@ -66,30 +74,24 @@ class Robot():
         self.state.can_shoot = False
     
     def add_bullet(self, num=100):
-        self.state.bullet += num
-        if self.ally_state.alive == True:
-            self.ally_state.bullet += num
+        if self.state.alive:
+            self.state.bullet += num
+        if self.ally.state.alive == True:
+            self.ally.state.bullet += num
 
     def add_health(self, num=200):
-        self.state.health += num
-        if self.ally_state.alive == True:
-            self.ally_state.bullet += num
+        if self.state.alive:
+            self.state.health += num
+        if self.ally.state.alive == True:
+            self.ally.state.bullet += num
         
 
-    def shoot(self, velocity):
+    def shoot(self, velocity=20):
+        self.shoot_command = 0
         if not self.state.can_shoot:
             return False
         self.state.bullet -= 1
         self.state.heat += velocity
-        if 25 < velocity < 30:
-            self.add_health(-200)
-        elif 30 <= velocity <= 35:
-            self.add_health(-1000)
-        elif velocity > 35:
-            self.add_health(-2000)
-        if self.ally_state.alive == True:
-            self.ally_state.heat += velocity
-        # TODO: success rate of shooting considering distance and velocity
         return True
         
     def disable_moving(self, time):
@@ -107,5 +109,6 @@ class Robot():
     def disdisable_shooting(self,):
         self.state.can_shoot = True
         self.state.cant_shoot_time = 0
+
 
     #def set_pose
