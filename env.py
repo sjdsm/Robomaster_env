@@ -1,25 +1,52 @@
+#!/usr/bin/env python
+import threading
 from enum import Enum
-from map import RM_map
-from robot import Armor, Team, Robot_State, Robot, Pose
+import map
+from robot import Armor, Team, RobotState, Robot, Pose
 import time
+# from geometry_msgs.msg import Pose, Twist, Point
+# from nav_msgs.msg import Odometry
+from roborts_msgs.msg import env_input, env_output, vel_command_stack 
 
 DURATION = 180 # length of a game
 FREQUENCY = 50
 
-class Armor(Enum):
-    FRONT = 1
-    LEFT = 2
-    RIGHT = 2
-    BACK = 3
-  
+def thread_job():
+    rospy.spin()
 
 class RMAI_GAME():
     def __init__(self):
         self.duration = DURATION
         self.start_time = time.time()
-        self.last_time = 0
-        self.map = RM_map()
+        self.passed_time = 0
+        self.map = map.RM_map()
         self.reset()
+
+        # I trylly prefer to use dict
+        self.robots = { ("RED", 0): Robot(Team.RED, num=0), 
+                        ("RED", 1): Robot(Team.RED, num=1), 
+                        ("BLUE", 0): Robot(Team.BLUE, num=0), 
+                        ("BLUE", 1): Robot(Team.BLUE, num=1)]
+        
+        # set initial position in boot areas
+
+        for i, j in enumerate(self.robots):
+            boot = self.map.bootareas[i]
+            self.robots[j].state.pose = Pose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
+        
+        rospy.init_node('gym_env', anonymous=True)
+
+        rospy.Subscriber("/Topic_param1", env_input, self.gazebo_callback, tcp_nodelay=True)
+        # command input, shooting command needed
+        rospy.Subscriber("/Topic_param2", vel_command_stack, self.vel_command_callback, tcp_nodelay=True)
+
+        # to user
+        self.info_pub = rospy.Publisher('/Topic_param3', env_output, queue_size=10)
+        # to gazebo, robot alive or not, can move or not
+        self.condition_pub = rospy.Publisher('/Topic_param4', env_output, queue_size=10)
+
+        add_thread = threading.Thread(target = thread_job)
+        add_stread.start()
 
     def step(self, linear_speeds, angular_speeds, gimbal_speeds, shoot_commands):# default order: red0,red1,blue0,blue1
         '''
@@ -33,45 +60,45 @@ class RMAI_GAME():
         # 2. update everything (using gazebo callback)
 
         # 3. reset map if needed
-        self.last_time = time.time()-self.start_time
-        if self.last_time // 60 == 1 or 2:
+        self.passed_time = time.time()-self.start_time
+        if self.passed_time // 60 == 1 or 2:
             self.map.randomlize()
         
-        
         # 4. step robot
-        for i, robo in enumerate(self.robots):
+        for i, idx in enumerate(self.robots):
+            robo = self.robots[idx]
             if robo.state.alive == False:
                 continue
-            # 4.0 position update
-            robo.state.pose.chassis_position = position[i]
+            # # 4.0 position update, done in callback
+            # robo.state.pose.chassis_position = position[i]
 
             # 4.1 funcional areas
             for f in self.map.fareas:
                 if f.inside(robo.state.pose.x, robo.state.pose.y):
-                    if f.type == REGION.FREE:
+                    if f.type == map.Region.FREE:
                         continue
-                    elif f.type == REGION.REDBULLET:
+                    elif f.type == map.Region.REDBULLET:
                         self.robots[0].add_bullet()
                         self.robots[1].add_bullet()
-                        f.set_type(REGION.FREE)
-                    elif f.type == REGION.BLUEBULLET:
+                        f.set_type(map.Region.FREE)
+                    elif f.type == map.Region.BLUEBULLET:
                         self.robots[2].add_bullet()
                         self.robots[3].add_bullet()
-                        f.set_type(REGION.FREE)
-                    elif f.type == REGION.REDHEALTH:
+                        f.set_type(map.Region.FREE)
+                    elif f.type == map.Region.REDHEALTH:
                         self.robots[0].add_health()
                         self.robots[1].add_bullet()
-                        f.set_type(REGION.FREE)
-                    elif f.type == REGION.BLUEHEALTH:
+                        f.set_type(map.Region.FREE)
+                    elif f.type == map.Region.BLUEHEALTH:
                         self.robots[2].add_health()
                         self.robots[3].add_bullet()
-                        f.set_type(REGION.FREE)
-                    elif f.type == REGION.NOMOVING:
+                        f.set_type(map.Region.FREE)
+                    elif f.type == map.Region.NOMOVING:
                         robo.disable_moving(time.time())
-                        f.set_type(REGION.FREE)
+                        f.set_type(map.Region.FREE)
                     else:
                         robo.disable_shooting(time.time())
-                        f.set_type(REGION.FREE)    
+                        f.set_type(map.Region.FREE)    
             
             # 4.2 punish state update
             if not robo.state.can_move:
@@ -87,7 +114,7 @@ class RMAI_GAME():
                     self.robots[shoot_commands[i]['taget']].add_health(shoot_commands[i]['armor'] * 20)
             
             # 4.4 health update
-              # 4.4.1 heating damage
+              # 4.4.1 heating damage TODO: add frequency
             if robo.state.heat > 240:
                 robo.add_health(-(robo.state.heat - 240) * 4 ) 
             elif robo.state.heat > 360:
@@ -98,25 +125,32 @@ class RMAI_GAME():
             if robo.state.health <= 0:
                 robo.kill()
                 
-            # 4.6 heat cooldown
+            # 4.6 heat cooldown, TODO: frequency?
             cooldown_value = 240 if robo.state.health < 400 else 120
-            robo.state.heat = robo.state.heat > cooldown_valeu / FREQUENCY and robo.state.heat - cooldown_valeu / FREQUENCY or 0
+            robo.state.heat = robo.state.heat > cooldown_value / FREQUENCY and robo.state.heat - cooldown_value / FREQUENCY or 0
             
         done = self.done()
         # ignore: collision punishment
         return done
 
     def done(self):
-        if self.last_time >= DURATION:
+        if self.passed_time >= DURATION:
             return True
-        if not self.robots[0].state.alive() and not self.robots[1].state.alive():
+
+        blue_alive = False
+        red_alive = False
+
+        for robo in enumerate(self.robots):
+            if robo.key
+
+        if not self.robots['BLUE',0].state.alive() and not self.robots[1].state.alive():
             return True
         if not self.robots[2].state.alive() and not self.robots[3].state.alive():
             return True       
 
     def reset(self):
         self.time = 0
-        self.last_time = 0
+        self.passed_time = 0
         self.map.reset()
         self.robot_r0 = Robot(team=Team.RED, position=self.map.bootareas[0], num=0, on=True, alive=True) # position: rectangle
         self.robot_r1 = Robot(team=Team.RED, position=self.map.bootareas[1], num=1, on=True, alive=True)
@@ -127,3 +161,20 @@ class RMAI_GAME():
         self.robots[1].ally_state = self.robots[0].state
         self.robots[2].ally_state = self.robots[3].state
         self.robots[3].ally_state = self.robots[2].state
+
+    def gazebo_callback(self, data):
+        for i, msg in enumerate(data):
+            header = msg.header.frame_id.split()
+            robot_key = (header[0], int(header[1]))
+            
+            robot = self.robots.get(robot_key, None)
+            if robot:
+                robot.state.pose.chassis_pose = msg.chassis_odom.pose.pose.position
+                robot.state.pose.chassis_speed = msg.chassis_odom.twist.twist
+                robot.state.pose.gimbal_pose = msg.gimbal_odom
+                robot.state.laser_distance = msg.laser_distance
+
+if __name__ == "__main__":
+    game = RMAI_GAME()
+    while not rospy.is_shutdown():
+        game.step()

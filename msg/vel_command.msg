@@ -4,3 +4,5 @@ std_msgs/Header header
 geometry_msgs/Twist chassis_twist
 # gimbal_twist has angular speed: z
 geometry_msgs/Twist gimbal_twist
+# shoot or not
+bool shoot
