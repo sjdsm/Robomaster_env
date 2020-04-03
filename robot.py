@@ -89,12 +89,14 @@ class Robot():
         
 
     def shoot(self, velocity=20):
-        self.shoot_command = 0
-        if not self.state.can_shoot:
-            return False
-        self.state.bullet -= 1
-        self.state.heat += velocity
-        return True
+        if self.shoot_command:
+            if self.state.can_shoot:
+                self.state.bullet -= 1
+                self.state.heat += velocity
+                return True
+        return False
+        #self.shoot_command = 0
+        
         
     def disable_moving(self, time):
         self.state.can_move = False
