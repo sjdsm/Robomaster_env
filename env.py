@@ -39,7 +39,7 @@ class RMAI_GAME():
         add_thread = threading.Thread(target = thread_job)
         add_stread.start()
 
-    def step(self, pose, shoot_commands):# default order: red0,red1,blue0,blue1
+    def step(self):# default order: red0,red1,blue0,blue1
         '''
         linear_speeds: linear speed of 4 robots' chassis, default = 0
         angular_speeds: angular_speeds speed of 4 robots' chassis, default = 0
