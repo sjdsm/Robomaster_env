@@ -10,7 +10,7 @@ from roborts_msgs.msg import env_input, env_output, vel_command_stack, output_to
 
 DURATION = 180 # length of a game
 FREQUENCY = 50
-
+MAX_LASER_DISTANCE = 1000
 
 def thread_job():
     rospy.spin()
@@ -109,35 +109,37 @@ class RMAI_GAME():
                     robo.disdisable_shooting()
 
             # 4.3 shooting
-            if robo.shoot_command['velocity']>0 and robo.shoot(robo.shoot_command['velocity']) and robo.state.laser_distance < 50:
-                target = robo.shoot_command['taget']                     
-                for key,value in target.state.pose.armor.items():
-                    if abs(value[2]-robo.state.pose.gimbal_angle)>1/2*math.pi:                 
-                        difference_left_x = value[0][0]-robo.state.pose.chassis_pose.x 
-                        difference_left_y = value[0][1]-robo.state.pose.chassis_pose.y
-                        difference_right_x = value[1][0]-robo.state.pose.chassis_pose.x  
-                        difference_right_y = value[1][1]-robo.state.pose.chassis_pose.y              
-                        if difference_left_x>0 and difference_left_y>0:
-                            interval_left= math.atan(difference_left_y/difference_left_x)
-                        elif difference_left_x>0 and difference_left_y<0:
-                            interval_left= math.atan(difference_left_y/difference_left_x) + 2*math.pi
-                        else:
-                            interval_left= math.atan(difference_left_y/difference_left_x) + math.pi
+            if robo.shoot() and robo.state.laser_distance < MAX_LASER_DISTANCE:
+                for target in robo.enemies:
+                    if math.sqrt(pow(robo.state.pose.chassis_pose.x - target.state.pose.chassis_pose.x, 2) + 
+                                 pow(robo.state.pose.chassis_pose.y - target.state.pose.chassis_pose.y, 2)) > MAX_LASER_DISTANCE + 500:
+                        for key,value in target.state.pose.armor.items():
+                            if abs(value[2]-robo.state.pose.gimbal_angle)>1/2*math.pi:                 
+                                difference_left_x = value[0][0]-robo.state.pose.chassis_pose.x 
+                                difference_left_y = value[0][1]-robo.state.pose.chassis_pose.y
+                                difference_right_x = value[1][0]-robo.state.pose.chassis_pose.x  
+                                difference_right_y = value[1][1]-robo.state.pose.chassis_pose.y              
+                                if difference_left_x>0 and difference_left_y>0:
+                                    interval_left= math.atan(difference_left_y/difference_left_x)
+                                elif difference_left_x>0 and difference_left_y<0:
+                                    interval_left= math.atan(difference_left_y/difference_left_x) + 2*math.pi
+                                else:
+                                    interval_left= math.atan(difference_left_y/difference_left_x) + math.pi
 
-                        if difference_right_x>0 and difference_right_y>0:
-                            interval_right= math.atan(difference_right_y/difference_right_x)
-                        elif difference_right_x>0 and difference_right_y<0:
-                            interval_right= math.atan(difference_right_y/difference_right_x) + 2*math.pi
-                        else:
-                            interval_right= math.atan(difference_right_y/difference_right_x) + math.pi                 
-                        if robo.state.pose.gimbal_pose.theta in Interval(interval_left, interval_right):
-                            if key is 'FRONT':
-                                damage = 20
-                            elif key is 'BACK':
-                                damage = 40     
-                            else: 
-                                damage = 60  
-                            target.add_health(damage)                         
+                                if difference_right_x>0 and difference_right_y>0:
+                                    interval_right= math.atan(difference_right_y/difference_right_x)
+                                elif difference_right_x>0 and difference_right_y<0:
+                                    interval_right= math.atan(difference_right_y/difference_right_x) + 2*math.pi
+                                else:
+                                    interval_right= math.atan(difference_right_y/difference_right_x) + math.pi                 
+                                if robo.state.pose.gimbal_pose.theta in Interval(interval_left, interval_right):
+                                    if key is 'FRONT':
+                                        damage = 20
+                                    elif key is 'BACK':
+                                        damage = 40     
+                                    else: 
+                                        damage = 60  
+                                    target.add_health(damage)                         
             
             # 4.4 health update
               # 4.4.1 heating damage
@@ -175,9 +177,9 @@ class RMAI_GAME():
                        ("RED", 1): Robot(Team.RED, num=1), 
                        ("BLUE", 0): Robot(Team.BLUE, num=0), 
                        ("BLUE", 1): Robot(Team.BLUE, num=1)]     
-        for i, j in enumerate(self.robots):
-            boot = self.map.bootareas[i]
-            self.robots[j].state.pose = RobotPose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
+#         for i, j in enumerate(self.robots):
+#             boot = self.map.bootareas[i]
+#             self.robots[j].state.pose = RobotPose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
         self.robots[('BLUE', 0)].ally = self.robots[('BLUE', 1)]
         self.robots[('BLUE', 1)].ally = self.robots[('BLUE', 0)]
         self.robots[('RED', 0)].ally = self.robots[('RED', 1)]
