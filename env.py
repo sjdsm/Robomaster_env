@@ -8,6 +8,7 @@ import time
 # from geometry_msgs.msg import Pose, Twist, Point
 # from nav_msgs.msg import Odometry
 from roborts_msgs.msg import env_input, env_output, vel_command_stack, output_to_gazebo, vel_command_stack
+from interval import Interval
 
 DURATION = 180 # length of a game
 
@@ -16,6 +17,10 @@ MAX_LASER_DISTANCE = 1000
 
 def thread_job():
     rospy.spin()
+    
+def distance():
+    
+    return 
 
 class RMAI_GAME():
     def __init__(self):
@@ -139,10 +144,11 @@ class RMAI_GAME():
                     robo.disdisable_shooting()
                        
             # 4.3 shooting
-            if robo.shoot() and robo.state.laser_distance < MAX_LASER_DISTANCE:
+            if robo.shoot_commandand and robo.state.laser_distance < MAX_LASER_DISTANCE:
+                robo.shoot()
                 for target in robo.enemies:
                     if math.sqrt(pow(robo.state.pose.chassis_pose.x - target.state.pose.chassis_pose.x, 2) + 
-                                 pow(robo.state.pose.chassis_pose.y - target.state.pose.chassis_pose.y, 2)) > MAX_LASER_DISTANCE + 500:
+                                 pow(robo.state.pose.chassis_pose.y - target.state.pose.chassis_pose.y, 2)) < robo.state.laser_distance + 500:
                         for key,value in target.state.pose.armor.items():
                             if abs(value[2]-robo.state.pose.gimbal_angle)>1/2*math.pi:                 
                                 difference_left_x = value[0][0]-robo.state.pose.chassis_pose.x 
