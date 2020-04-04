@@ -1,6 +1,8 @@
+#!/usr/bin/env python
 import numpy as np
 from enum import Enum
 import math
+
 from geometry_msgs.msg import Pose, Twist, Point
 
 ROBOT_L = 0.8
@@ -16,7 +18,7 @@ class Armor(Enum):
 class Team(Enum):
     RED = 0
     BLUE = 1
-    
+
 class RobotPose():
     def __init__(self, position=[0,0,0], linear_speed=[0,0], angular_speed=[0]):
         # x,y: robot center, theta: with X-axis
@@ -24,6 +26,7 @@ class RobotPose():
         self.chassis_speed = Twist()
         # gimbal pose: theta, w, dw
         self.gimbal_pose = Point()
+        
         self.armor_angle = math.atan(1/3)
         self.armor_set()
     def armor_set(self):
@@ -39,6 +42,7 @@ class RobotPose():
                     'RIGHT'=[[self.chassis_pose.x+math.cos(self.chassis_pose.theta-math.pi/2+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-math.pi/2+self.armor_angle)],
                              [self.chassis_pose.x+math.cos(self.chassis_pose.theta-math.pi/2-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-math.pi/2-self.armor_angle)],
                              self.chassis_pose.theta-math.pi/2 if self.chassis_pose.theta>1/2*math.pi else self.chassis_pose.theta+math.pi/2+2*math.pi]}
+
 
 class RobotState():
     def __init__(self, team=Team.BLUE, id=0, on=False, alive=False, position=[0,0,0]): # position: (x,y,theta)
@@ -60,7 +64,6 @@ class RobotState():
         self.length = 600
         self.width = 600
         self.height = 500       
-
         
 class Robot():
     def __init__(self, team, num=1, on=True, alive=True, position=[0,0,0]):
@@ -90,14 +93,13 @@ class Robot():
 
     def shoot(self, velocity=20):
         if self.shoot_command:
+            self.shoot_command = 0
             if self.state.can_shoot:
                 self.state.bullet -= 1
                 self.state.heat += velocity
                 return True
         return False
-        #self.shoot_command = 0
-        
-        
+
     def disable_moving(self, time):
         self.state.can_move = False
         self.state.cant_move_time = time

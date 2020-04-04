@@ -3,13 +3,15 @@ import threading
 from enum import Enum
 import map
 from robot import Armor, Team, RobotState, Robot, RobotPose
+
 import time
 # from geometry_msgs.msg import Pose, Twist, Point
 # from nav_msgs.msg import Odometry
 from roborts_msgs.msg import env_input, env_output, vel_command_stack, output_to_gazebo, vel_command_stack
 
 DURATION = 180 # length of a game
-FREQUENCY = 50
+
+FREQUENCY = 10
 MAX_LASER_DISTANCE = 1000
 
 def thread_job():
@@ -24,7 +26,33 @@ class RMAI_GAME():
         self.reset()
         self.red_alive = True
         self.blue_alive = True
+
+        # I trylly prefer to use dict
+        self.robots = { ("RED", 0): Robot(Team.RED, id=0), 
+                        ("RED", 1): Robot(Team.RED, id=1), 
+                        ("BLUE", 0): Robot(Team.BLUE, id=0), 
+                        ("BLUE", 1): Robot(Team.BLUE, id=1)]
         
+        # set initial position in boot areas
+
+        for i, j in enumerate(self.robots):
+            boot = self.map.bootareas[i]
+            self.robots[j].state.pose = Pose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
+        
+        self.robots[('BLUE', 0)].ally = self.robots[('BLUE', 1)]
+        self.robots[('BLUE', 1)].ally = self.robots[('BLUE', 0)]
+        self.robots[('RED', 0)].ally = self.robots[('RED', 1)]
+        self.robots[('RED', 1)].ally = self.robots[('RED', 0)]
+
+        self.robots[('BLUE', 0)].enemies.append(self.robots[('RED', 0)])
+        self.robots[('BLUE', 0)].enemies.append(self.robots[('RED', 1)])
+        self.robots[('BLUE', 1)].enemies.append(self.robots[('RED', 0)])
+        self.robots[('BLUE', 1)].enemies.append(self.robots[('RED', 1)])
+        self.robots[('RED', 0)].enemies.append(self.robots[('BLUE', 0)])
+        self.robots[('RED', 0)].enemies.append(self.robots[('BLUE', 1)])
+        self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 0)])
+        self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 1)])
+
         rospy.init_node('gym_env', anonymous=True)
 
         rospy.Subscriber("/Topic_param1", env_input, self.gazebo_callback, tcp_nodelay=True)
@@ -50,19 +78,19 @@ class RMAI_GAME():
 
         # 2. update everything (using gazebo callback)
 
+
         # 3. reset map if needed
         self.passed_time = time.time()-self.start_time
         if self.passed_time // 60 == 1 or 2:
             self.map.randomlize()
         
-        
         # 4. step robot
         self.red_alive = False
         self.blue_alive = False
-        
+
         for i, idx in enumerate(self.robots):
             robo = self.robots[idx]
-            
+                       
             # 4.0 survival state
             if robo.state.alive == False:
                 continue
@@ -70,6 +98,7 @@ class RMAI_GAME():
                 self.blue_alive = True
             else:
                 self.red_alive = True
+
             # # position update, done in callback
             
             # update armor
@@ -98,6 +127,7 @@ class RMAI_GAME():
                     else:
                         robo.disable_shooting(time.time())
                         f.set_type(map.Region.FREE) 
+
                     break  
             
             # 4.2 punish state update
@@ -107,7 +137,7 @@ class RMAI_GAME():
             if not robo.state.can_shoot:
                 if (self.time - robo.state.cant_shoot_time) > 10:
                     robo.disdisable_shooting()
-
+                       
             # 4.3 shooting
             if robo.shoot() and robo.state.laser_distance < MAX_LASER_DISTANCE:
                 for target in robo.enemies:
@@ -140,7 +170,7 @@ class RMAI_GAME():
                                     else: 
                                         damage = 60  
                                     target.add_health(damage)                         
-            
+
             # 4.4 health update
               # 4.4.1 heating damage
             if robo.state.heat > 240:
@@ -155,9 +185,10 @@ class RMAI_GAME():
                 
             # 4.6 heat cooldown
             cooldown_value = 240 if robo.state.health < 400 else 120
-            robo.state.heat = robo.state.heat > cooldown_valeu / FREQUENCY and robo.state.heat - cooldown_valeu / FREQUENCY or 0
-       
-        self.publish_all()    
+            robo.state.heat = robo.state.heat > cooldown_value / FREQUENCY and robo.state.heat - cooldown_value / FREQUENCY or 0
+            
+        self.publish_all()
+
         done = self.done()
         # ignore: collision punishment
         return done
@@ -171,8 +202,9 @@ class RMAI_GAME():
 
     def reset(self):
         self.time = 0
-        self.last_time = 0
+        self.passed_time = 0
         self.map.reset()
+                       
         self.robots = {("RED", 0): Robot(Team.RED, num=0), 
                        ("RED", 1): Robot(Team.RED, num=1), 
                        ("BLUE", 0): Robot(Team.BLUE, num=0), 
@@ -269,3 +301,4 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         game.step()
         rospy.sleep(epoch)                   
+
