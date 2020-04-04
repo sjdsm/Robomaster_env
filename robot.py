@@ -129,6 +129,7 @@ class Robot():
                             else: 
                                 damage = 60  
                             target.add_health(damage)  
+                            break
             self.state.bullet -= 1
             self.state.heat += velocity
             return True
