@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
 from enum import Enum
+import math
+
 from geometry_msgs.msg import Pose, Twist, Point
 
 ROBOT_L = 0.8
@@ -24,6 +26,23 @@ class RobotPose():
         self.chassis_speed = Twist()
         # gimbal pose: theta, w, dw
         self.gimbal_pose = Point()
+        
+        self.armor_angle = math.atan(1/3)
+        self.armor_set()
+    def armor_set(self):
+        self.armor={'FRONT':[[self.chassis_pose.x+math.cos(self.chassis_pose.theta+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+self.armor_angle)],
+                             [self.chassis_pose.x+math.cos(self.chassis_pose.theta-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-self.armor_angle)],
+                             self.chassis_pose.theta],
+                    'BACK'=[[self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi+self.armor_angle)],
+                            [self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi-self.armor_angle)],
+                            self.chassis_pose.theta+math.pi if self.chassis_pose.theta<math.pi else self.chassis_pose.theta-math.pi ], 
+                    'LEFT'=[[self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi/2+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi/2+self.armor_angle)],
+                            [self.chassis_pose.x+math.cos(self.chassis_pose.theta+math.pi/2-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta+math.pi/2-self.armor_angle)], 
+                            self.chassis_pose.theta+math.pi/2 if self.chassis_pose.theta<3/2*math.pi else self.chassis_pose.theta+math.pi/2-2*math.pi], 
+                    'RIGHT'=[[self.chassis_pose.x+math.cos(self.chassis_pose.theta-math.pi/2+self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-math.pi/2+self.armor_angle)],
+                             [self.chassis_pose.x+math.cos(self.chassis_pose.theta-math.pi/2-self.armor_angle),self.chassis_pose.y+math.sin(self.chassis_pose.theta-math.pi/2-self.armor_angle)],
+                             self.chassis_pose.theta-math.pi/2 if self.chassis_pose.theta>1/2*math.pi else self.chassis_pose.theta+math.pi/2+2*math.pi]}
+
 
 class RobotState():
     def __init__(self, team=Team.BLUE, id=0, on=False, alive=False, position=[0,0,0]): # position: (x,y,theta)
@@ -44,8 +63,8 @@ class RobotState():
 
         self.length = 600
         self.width = 600
-        self.height = 500
-
+        self.height = 500       
+        
 class Robot():
     def __init__(self, team, num=1, on=True, alive=True, position=[0,0,0]):
         self.state = RobotState(team, num, on, alive, position)
@@ -73,23 +92,14 @@ class Robot():
         
 
     def shoot(self, velocity=20):
-        self.shoot_command = 0
-        if not self.state.can_shoot:
-            return False
-        self.state.bullet -= 1
-        self.state.heat += velocity
+        if self.shoot_command:
+            self.shoot_command = 0
+            if self.state.can_shoot:
+                self.state.bullet -= 1
+                self.state.heat += velocity
+                return True
+        return False
 
-        # # velocity punishment: no need
-        # if 25 < velocity < 30:
-        #     self.add_health(-200)
-        # elif 30 <= velocity <= 35:
-        #     self.add_health(-1000)
-        # elif velocity > 35:
-        #     self.add_health(-2000)
-
-        # TODO: success rate of shooting considering distance and velocity
-        return True
-        
     def disable_moving(self, time):
         self.state.can_move = False
         self.state.cant_move_time = time
@@ -105,5 +115,6 @@ class Robot():
     def disdisable_shooting(self,):
         self.state.can_shoot = True
         self.state.cant_shoot_time = 0
+
 
     #def set_pose

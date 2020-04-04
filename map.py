@@ -59,6 +59,7 @@ class RM_map():
     def randomlize(self):    
         global RANDOMSEED
         RANDOMSEED += 1
+
         np.random.seed(RANDOMSEED)
         # random seed
         order = np.array(range(6))
