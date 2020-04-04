@@ -2,12 +2,17 @@
 import numpy as np
 from enum import Enum
 import math
-
+from interval import Interval
 from geometry_msgs.msg import Pose, Twist, Point
 
 ROBOT_L = 0.8
 ROBOT_W = 0.6
 ROBOT_H = 0.6
+
+def distance(point_1,point_2):
+    ans = math.sqrt((point_1[0] - point_2[0]) ** 2 +
+                    (point_1[1] - point[1]) ** 2)
+    return ans
 
 class Armor(Enum):
     FRONT = 0
@@ -92,12 +97,41 @@ class Robot():
         
 
     def shoot(self, velocity=20):
-        if self.shoot_command:
-            self.shoot_command = 0
-            if self.state.can_shoot:
-                self.state.bullet -= 1
-                self.state.heat += velocity
-                return True
+        self.shoot_command = 0
+        if self.state.can_shoot:
+            for target in self.enemies:
+                for key,value in target.state.pose.armor.items():
+                    if abs(value[2]-self.state.pose.gimbal_angle)>1/2*math.pi and 
+                    self.state.laser_distance > min(distance((self.state.pose.chassis_pose.x, self.state.pose.chassis_pose.y),value[0]),
+                                                    distance((self.state.pose.chassis_pose.x, self.state.pose.chassis_pose.y),value[1])):                 
+                        difference_left_x = value[0][0]-self.state.pose.chassis_pose.x 
+                        difference_left_y = value[0][1]-self.state.pose.chassis_pose.y
+                        difference_right_x = value[1][0]-self.state.pose.chassis_pose.x  
+                        difference_right_y = value[1][1]-self.state.pose.chassis_pose.y              
+                        if difference_left_x>0 and difference_left_y>0:
+                            interval_left= math.atan(difference_left_y/difference_left_x)
+                        elif difference_left_x>0 and difference_left_y<0:
+                            interval_left= math.atan(difference_left_y/difference_left_x) + 2*math.pi
+                        else:
+                            interval_left= math.atan(difference_left_y/difference_left_x) + math.pi
+
+                        if difference_right_x>0 and difference_right_y>0:
+                            interval_right= math.atan(difference_right_y/difference_right_x)
+                        elif difference_right_x>0 and difference_right_y<0:
+                            interval_right= math.atan(difference_right_y/difference_right_x) + 2*math.pi
+                        else:
+                            interval_right= math.atan(difference_right_y/difference_right_x) + math.pi                 
+                        if robo.state.pose.gimbal_pose.theta in Interval(interval_left, interval_right):
+                            if key is 'FRONT':
+                                damage = 20
+                            elif key is 'BACK':
+                                damage = 40     
+                            else: 
+                                damage = 60  
+                            target.add_health(damage)  
+            self.state.bullet -= 1
+            self.state.heat += velocity
+            return True
         return False
 
     def disable_moving(self, time):
