@@ -18,10 +18,6 @@ MAX_LASER_DISTANCE = 1000
 def thread_job():
     rospy.spin()
     
-def distance():
-    
-    return 
-
 class RMAI_GAME():
     def __init__(self):
         self.duration = DURATION
