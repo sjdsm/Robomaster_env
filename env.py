@@ -9,6 +9,7 @@ import time
 # from nav_msgs.msg import Odometry
 from roborts_msgs.msg import env_input, env_output, vel_command_stack, output_to_gazebo, vel_command_stack
 
+
 DURATION = 180 # length of a game
 
 FREQUENCY = 10
@@ -16,7 +17,7 @@ MAX_LASER_DISTANCE = 1000
 
 def thread_job():
     rospy.spin()
-
+    
 class RMAI_GAME():
     def __init__(self):
         self.duration = DURATION
@@ -139,37 +140,8 @@ class RMAI_GAME():
                     robo.disdisable_shooting()
                        
             # 4.3 shooting
-            if robo.shoot() and robo.state.laser_distance < MAX_LASER_DISTANCE:
-                for target in robo.enemies:
-                    if math.sqrt(pow(robo.state.pose.chassis_pose.x - target.state.pose.chassis_pose.x, 2) + 
-                                 pow(robo.state.pose.chassis_pose.y - target.state.pose.chassis_pose.y, 2)) > MAX_LASER_DISTANCE + 500:
-                        for key,value in target.state.pose.armor.items():
-                            if abs(value[2]-robo.state.pose.gimbal_angle)>1/2*math.pi:                 
-                                difference_left_x = value[0][0]-robo.state.pose.chassis_pose.x 
-                                difference_left_y = value[0][1]-robo.state.pose.chassis_pose.y
-                                difference_right_x = value[1][0]-robo.state.pose.chassis_pose.x  
-                                difference_right_y = value[1][1]-robo.state.pose.chassis_pose.y              
-                                if difference_left_x>0 and difference_left_y>0:
-                                    interval_left= math.atan(difference_left_y/difference_left_x)
-                                elif difference_left_x>0 and difference_left_y<0:
-                                    interval_left= math.atan(difference_left_y/difference_left_x) + 2*math.pi
-                                else:
-                                    interval_left= math.atan(difference_left_y/difference_left_x) + math.pi
-
-                                if difference_right_x>0 and difference_right_y>0:
-                                    interval_right= math.atan(difference_right_y/difference_right_x)
-                                elif difference_right_x>0 and difference_right_y<0:
-                                    interval_right= math.atan(difference_right_y/difference_right_x) + 2*math.pi
-                                else:
-                                    interval_right= math.atan(difference_right_y/difference_right_x) + math.pi                 
-                                if robo.state.pose.gimbal_pose.theta in Interval(interval_left, interval_right):
-                                    if key is 'FRONT':
-                                        damage = 20
-                                    elif key is 'BACK':
-                                        damage = 40     
-                                    else: 
-                                        damage = 60  
-                                    target.add_health(damage)                         
+            if robo.shoot_commandand and robo.state.laser_distance < MAX_LASER_DISTANCE:
+                robo.shoot()                       
 
             # 4.4 health update
               # 4.4.1 heating damage
