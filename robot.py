@@ -11,7 +11,7 @@ ROBOT_H = 0.6
 
 def distance(point_1,point_2):
     ans = math.sqrt((point_1[0] - point_2[0]) ** 2 +
-                    (point_1[1] - point[1]) ** 2)
+                    (point_1[1] - point_2[1]) ** 2)
     return ans
 
 class Armor(Enum):
