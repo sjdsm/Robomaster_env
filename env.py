@@ -27,33 +27,7 @@ class RMAI_GAME():
         self.reset()
         self.red_alive = True
         self.blue_alive = True
-
-        # I trylly prefer to use dict
-        self.robots = { ("RED", 0): Robot(Team.RED, id=0), 
-                        ("RED", 1): Robot(Team.RED, id=1), 
-                        ("BLUE", 0): Robot(Team.BLUE, id=0), 
-                        ("BLUE", 1): Robot(Team.BLUE, id=1)]
         
-        # set initial position in boot areas
-
-        for i, j in enumerate(self.robots):
-            boot = self.map.bootareas[i]
-            self.robots[j].state.pose = Pose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
-        
-        self.robots[('BLUE', 0)].ally = self.robots[('BLUE', 1)]
-        self.robots[('BLUE', 1)].ally = self.robots[('BLUE', 0)]
-        self.robots[('RED', 0)].ally = self.robots[('RED', 1)]
-        self.robots[('RED', 1)].ally = self.robots[('RED', 0)]
-
-        self.robots[('BLUE', 0)].enemies.append(self.robots[('RED', 0)])
-        self.robots[('BLUE', 0)].enemies.append(self.robots[('RED', 1)])
-        self.robots[('BLUE', 1)].enemies.append(self.robots[('RED', 0)])
-        self.robots[('BLUE', 1)].enemies.append(self.robots[('RED', 1)])
-        self.robots[('RED', 0)].enemies.append(self.robots[('BLUE', 0)])
-        self.robots[('RED', 0)].enemies.append(self.robots[('BLUE', 1)])
-        self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 0)])
-        self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 1)])
-
         rospy.init_node('gym_env', anonymous=True)
 
         rospy.Subscriber("/Topic_param1", env_input, self.gazebo_callback, tcp_nodelay=True)
