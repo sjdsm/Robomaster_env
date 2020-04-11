@@ -13,12 +13,18 @@ import time
 # from nav_msgs.msg import Odometry
 from robomaster_env.msg import env_input, env_output, vel_command_stack, robot_output
 
+import Tkinter as tk
+
 DURATION = 180 # length of a game
 EPOCH = 0.1
 MAX_LASER_DISTANCE = 1000
 
 def thread_job():
     rospy.spin()
+
+def thread_ui(game):
+    ui = UI(game)
+    ui.blocked_run()
     
 
 class RMAI_GAME():
@@ -278,9 +284,281 @@ class RMAI_GAME():
         self.publish_info(info)
 
 
+class UI:
+
+    flag_time_to_exit = False
+    flag_already_exit = False
+
+    def thread_update_UI_val(self):
+
+        while not self.flag_time_to_exit:
+
+            self.R0_Health_str.set( self.game.robots[('RED', 0)].state.health )
+            self.R1_Health_str.set( self.game.robots[('RED', 1)].state.health )
+            self.B0_Health_str.set( self.game.robots[('BLUE', 0)].state.health )
+            self.B1_Health_str.set( self.game.robots[('BLUE', 1)].state.health )
+
+            self.R0_Bullet_str.set( self.game.robots[('RED', 0)].state.bullet )
+            self.R1_Bullet_str.set( self.game.robots[('RED', 1)].state.bullet )
+            self.B0_Bullet_str.set( self.game.robots[('BLUE', 0)].state.bullet )
+            self.B1_Bullet_str.set( self.game.robots[('BLUE', 1)].state.bullet )
+
+            self.bt_R0_Move_str.set( self.game.robots[('RED', 0)].state.can_move )
+            self.bt_R1_Move_str.set( self.game.robots[('RED', 1)].state.can_move )
+            self.bt_B0_Move_str.set( self.game.robots[('BLUE', 0)].state.can_move )
+            self.bt_B1_Move_str.set( self.game.robots[('BLUE', 1)].state.can_move )
+
+            self.bt_R0_Shoot_str.set( self.game.robots[('RED', 0)].state.can_shoot )
+            self.bt_R1_Shoot_str.set( self.game.robots[('RED', 1)].state.can_shoot )
+            self.bt_B0_Shoot_str.set( self.game.robots[('BLUE', 0)].state.can_shoot )
+            self.bt_B1_Shoot_str.set( self.game.robots[('BLUE', 1)].state.can_shoot )
+
+
+            time.sleep(0.04)
+
+        self.flag_already_exit = True
+
+
+    def quit_cb(self):
+        self.flag_time_to_exit = True
+        while not self.flag_already_exit:
+            pass
+        self.window.destroy()
+
+
+    def reset_cb(self):
+        self.game.reset()
+
+
+    def r0_health_cb(self):
+        try:
+            self.game.robots[('RED', 0)].set_health( int(float(self.set_R0_Health_str.get())) )
+        except:
+            pass
+
+
+    def r1_health_cb(self):
+        try:
+            self.game.robots[('RED', 1)].set_health( int(float(self.set_R1_Health_str.get())) )
+        except:
+            pass
+
+
+    def b0_health_cb(self):
+        try:
+            self.game.robots[('BLUE', 0)].set_health( int(float(self.set_B0_Health_str.get())) )
+        except:
+            pass
+
+
+    def b1_health_cb(self):
+        try:
+            self.game.robots[('BLUE', 1)].set_health( int(float(self.set_B1_Health_str.get())) )
+        except:
+            pass
+
+
+    def r0_bullet_cb(self):
+        try:
+            self.game.robots[('RED', 0)].set_bullet( int(float(self.set_R0_Bullet_str.get())) )
+        except:
+            pass
+
+
+    def r1_bullet_cb(self):
+        try:
+            self.game.robots[('RED', 1)].set_bullet( int(float(self.set_R1_Bullet_str.get())) )
+        except:
+            pass
+
+
+    def b0_bullet_cb(self):
+        try:
+            self.game.robots[('BLUE', 0)].set_bullet( int(float(self.set_B0_Bullet_str.get())) )
+        except:
+            pass
+
+
+    def b1_bullet_cb(self):
+        try:
+            self.game.robots[('BLUE', 1)].set_bullet( int(float(self.set_B1_Bullet_str.get())) )
+        except:
+            pass
+
+
+    def r0_move_cb(self):
+        if self.bt_R0_Move_str.get() == '1':
+            self.game.robots[('RED', 0)].disable_moving()
+        elif self.bt_R0_Move_str.get() == '0':
+            self.game.robots[('RED', 0)].disdisable_moving()
+
+
+    def r1_move_cb(self):
+        if self.bt_R1_Move_str.get() == '1':
+            self.game.robots[('RED', 1)].disable_moving()
+        elif self.bt_R1_Move_str.get() == '0':
+            self.game.robots[('RED', 1)].disdisable_moving()
+
+
+    def b0_move_cb(self):
+        if self.bt_B0_Move_str.get() == '1':
+            self.game.robots[('BLUE', 0)].disable_moving()
+        elif self.bt_B0_Move_str.get() == '0':
+            self.game.robots[('BLUE', 0)].disdisable_moving()
+
+
+    def b1_move_cb(self):
+        if self.bt_B1_Move_str.get() == '1':
+            self.game.robots[('BLUE', 1)].disable_moving()
+        elif self.bt_B1_Move_str.get() == '0':
+            self.game.robots[('BLUE', 1)].disdisable_moving()
+
+
+    def r0_shoot_cb(self):
+        if self.bt_R0_Shoot_str.get() == '1':
+            self.game.robots[('RED', 0)].disable_shooting()
+        elif self.bt_R0_Shoot_str.get() == '0':
+            self.game.robots[('RED', 0)].disdisable_shooting()
+
+
+    def r1_shoot_cb(self):
+        if self.bt_R1_Shoot_str.get() == '1':
+            self.game.robots[('RED', 1)].disable_shooting()
+        elif self.bt_R1_Shoot_str.get() == '0':
+            self.game.robots[('RED', 1)].disdisable_shooting()
+
+
+    def b0_shoot_cb(self):
+        if self.bt_B0_Shoot_str.get() == '1':
+            self.game.robots[('BLUE', 0)].disable_shooting()
+        elif self.bt_B0_Shoot_str.get() == '0':
+            self.game.robots[('BLUE', 0)].disdisable_shooting()
+
+
+    def b1_shoot_cb(self):
+        if self.bt_B1_Shoot_str.get() == '1':
+            self.game.robots[('BLUE', 1)].disable_shooting()
+        elif self.bt_B1_Shoot_str.get() == '0':
+            self.game.robots[('BLUE', 1)].disdisable_shooting()
+
+
+    def __init__(self, game):
+
+        self.game = game
+
+        self.window = tk.Tk()
+         
+        self.window.title('Robomasters AI')
+         
+        self.window.geometry('530x160')
+
+        tk.Button(self.window, text='Reset', font=('Arial', 12), command=self.reset_cb).grid(row=0,column=0)
+
+        tk.Label(self.window, text='Health', font=('Arial', 12)).grid(row=0,column=2)
+        tk.Label(self.window, text='Bullet', font=('Arial', 12)).grid(row=0,column=5)
+        tk.Label(self.window, text='Move', font=('Arial', 12)).grid(row=0,column=7)
+        tk.Label(self.window, text='Shoot', font=('Arial', 12)).grid(row=0,column=8)
+
+        tk.Label(self.window, text='RED 0', fg='red', font=('Arial', 12)).grid(row=2,column=0)
+        tk.Label(self.window, text='RED 1', fg='red', font=('Arial', 12)).grid(row=4,column=0)
+        tk.Label(self.window, text='BLUE 0', fg='blue', font=('Arial', 12)).grid(row=6,column=0)
+        tk.Label(self.window, text='BLUE 1', fg='blue', font=('Arial', 12)).grid(row=8,column=0)
+
+
+        self.R0_Health_str = tk.StringVar()
+        self.R0_Bullet_str = tk.StringVar()
+        self.R1_Health_str = tk.StringVar()
+        self.R1_Bullet_str = tk.StringVar()
+        self.B0_Health_str = tk.StringVar()
+        self.B0_Bullet_str = tk.StringVar()
+        self.B1_Health_str = tk.StringVar()
+        self.B1_Bullet_str = tk.StringVar()
+        self.R0_Health_str.set('0')
+        self.R0_Bullet_str.set('0')
+        self.R1_Health_str.set('0')
+        self.R1_Bullet_str.set('0')
+        self.B0_Health_str.set('0')
+        self.B0_Bullet_str.set('0')
+        self.B1_Health_str.set('0')
+        self.B1_Bullet_str.set('0')
+        tk.Label(self.window, textvariable=self.R0_Health_str, font=('Arial', 12), width=6).grid(row=2,column=1)
+        tk.Label(self.window, textvariable=self.R0_Bullet_str, font=('Arial', 12), width=6).grid(row=2,column=4)
+        tk.Label(self.window, textvariable=self.R1_Health_str, font=('Arial', 12), width=6).grid(row=4,column=1)
+        tk.Label(self.window, textvariable=self.R1_Bullet_str, font=('Arial', 12), width=6).grid(row=4,column=4)
+        tk.Label(self.window, textvariable=self.B0_Health_str, font=('Arial', 12), width=6).grid(row=6,column=1)
+        tk.Label(self.window, textvariable=self.B0_Bullet_str, font=('Arial', 12), width=6).grid(row=6,column=4)
+        tk.Label(self.window, textvariable=self.B1_Health_str, font=('Arial', 12), width=6).grid(row=8,column=1)
+        tk.Label(self.window, textvariable=self.B1_Bullet_str, font=('Arial', 12), width=6).grid(row=8,column=4)
+
+
+        self.set_R0_Health_str = tk.StringVar()
+        self.set_R0_Bullet_str = tk.StringVar()
+        self.set_R1_Health_str = tk.StringVar()
+        self.set_R1_Bullet_str = tk.StringVar()
+        self.set_B0_Health_str = tk.StringVar()
+        self.set_B0_Bullet_str = tk.StringVar()
+        self.set_B1_Health_str = tk.StringVar()
+        self.set_B1_Bullet_str = tk.StringVar()
+        tk.Entry(self.window, textvariable=self.set_R0_Health_str, width=6).grid(row=2,column=2)
+        tk.Entry(self.window, textvariable=self.set_R0_Bullet_str, width=6).grid(row=2,column=5)
+        tk.Entry(self.window, textvariable=self.set_R1_Health_str, width=6).grid(row=4,column=2)
+        tk.Entry(self.window, textvariable=self.set_R1_Bullet_str, width=6).grid(row=4,column=5)
+        tk.Entry(self.window, textvariable=self.set_B0_Health_str, width=6).grid(row=6,column=2)
+        tk.Entry(self.window, textvariable=self.set_B0_Bullet_str, width=6).grid(row=6,column=5)
+        tk.Entry(self.window, textvariable=self.set_B1_Health_str, width=6).grid(row=8,column=2)
+        tk.Entry(self.window, textvariable=self.set_B1_Bullet_str, width=6).grid(row=8,column=5)
+
+
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.r0_health_cb).grid(row=2,column=3)
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.r1_health_cb).grid(row=4,column=3)
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.b0_health_cb).grid(row=6,column=3)
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.b1_health_cb).grid(row=8,column=3)
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.r0_bullet_cb).grid(row=2,column=6)
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.r1_bullet_cb).grid(row=4,column=6)
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.b0_bullet_cb).grid(row=6,column=6)
+        tk.Button(self.window, text='Set', font=('Arial', 12), command=self.b1_bullet_cb).grid(row=8,column=6)
+
+        self.bt_R0_Move_str = tk.StringVar()
+        self.bt_R1_Move_str = tk.StringVar()
+        self.bt_B0_Move_str = tk.StringVar()
+        self.bt_B1_Move_str = tk.StringVar()
+        self.bt_R0_Shoot_str = tk.StringVar()
+        self.bt_R1_Shoot_str = tk.StringVar()
+        self.bt_B0_Shoot_str = tk.StringVar()
+        self.bt_B1_Shoot_str = tk.StringVar()
+        tk.Button(self.window, textvariable=self.bt_R0_Move_str, font=('Arial', 12), command=self.r0_move_cb, width=3).grid(row=2,column=7)
+        tk.Button(self.window, textvariable=self.bt_R1_Move_str, font=('Arial', 12), command=self.r1_move_cb, width=3).grid(row=4,column=7)
+        tk.Button(self.window, textvariable=self.bt_B0_Move_str, font=('Arial', 12), command=self.b0_move_cb, width=3).grid(row=6,column=7)
+        tk.Button(self.window, textvariable=self.bt_B1_Move_str, font=('Arial', 12), command=self.b1_move_cb, width=3).grid(row=8,column=7)
+        tk.Button(self.window, textvariable=self.bt_R0_Shoot_str, font=('Arial', 12), command=self.r0_shoot_cb, width=3).grid(row=2,column=8)
+        tk.Button(self.window, textvariable=self.bt_R1_Shoot_str, font=('Arial', 12), command=self.r1_shoot_cb, width=3).grid(row=4,column=8)
+        tk.Button(self.window, textvariable=self.bt_B0_Shoot_str, font=('Arial', 12), command=self.b0_shoot_cb, width=3).grid(row=6,column=8)
+        tk.Button(self.window, textvariable=self.bt_B1_Shoot_str, font=('Arial', 12), command=self.b1_shoot_cb, width=3).grid(row=8,column=8)
+
+        self.window.protocol("WM_DELETE_WINDOW", self.quit_cb)
+
+
+    def blocked_run(self):
+
+        add_thread_UI_val = threading.Thread(target = self.thread_update_UI_val)
+        add_thread_UI_val.start()
+
+        # blocked
+        self.window.mainloop()
+
+        print("UI closed")
+
+
 if __name__ == "__main__":
 
+    print ( time.time() )
+
     game = RMAI_GAME()
+
+    # UI thread
+    add_ui_thread = threading.Thread(target = thread_ui, args=[game,])
+    add_ui_thread.start()
+
     while not rospy.is_shutdown():
         game.step()
         rospy.sleep(EPOCH)                   
