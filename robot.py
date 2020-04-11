@@ -120,7 +120,7 @@ class Robot():
                             interval_right= math.atan(difference_right_y/difference_right_x) + 2*math.pi
                         else:
                             interval_right= math.atan(difference_right_y/difference_right_x) + math.pi                 
-                        if robo.state.pose.gimbal_pose.theta in Interval(interval_left, interval_right):
+                        if self.state.pose.gimbal_pose.theta in Interval(interval_left, interval_right):
                             if key is 'FRONT':
                                 damage = 20
                             elif key is 'BACK':
