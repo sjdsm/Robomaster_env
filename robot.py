@@ -98,6 +98,10 @@ class Robot():
     def shoot(self, velocity=20):
         self.shoot_command = 0
         if self.state.can_shoot:
+            self.state.bullet -= 1
+            self.state.heat += velocity
+
+            # check shooting result
             for target in self.enemies:
                 for key,value in target.state.pose.armor.items():
                     if abs(value[2]-self.state.pose.gimbal_pose.z) > 1/2*math.pi and self.state.laser_distance >= min(distance((self.state.pose.chassis_pose.x, self.state.pose.chassis_pose.y),value[0]),
@@ -129,8 +133,6 @@ class Robot():
                                 damage = 60  
                             target.add_health(damage)  
                             break
-            self.state.bullet -= 1
-            self.state.heat += velocity
 
     def add_bullet(self, num=100):
         if self.state.alive:
