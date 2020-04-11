@@ -154,7 +154,7 @@ class RMAI_GAME():
         self.robots = {("RED", 0): Robot(Team.RED, num=0), 
                        ("RED", 1): Robot(Team.RED, num=1), 
                        ("BLUE", 0): Robot(Team.BLUE, num=0), 
-                       ("BLUE", 1): Robot(Team.BLUE, num=1)]     
+                       ("BLUE", 1): Robot(Team.BLUE, num=1)}   
 #         for i, j in enumerate(self.robots):
 #             boot = self.map.bootareas[i]
 #             self.robots[j].state.pose = RobotPose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
