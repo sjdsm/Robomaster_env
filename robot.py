@@ -148,7 +148,6 @@ class Robot():
         if self.ally.state.alive == True:
             self.ally.state.bullet += num
 
-<<<<<<< HEAD
     def disable_moving(self, start=None):
         if not start:
             start = time.time()
@@ -160,19 +159,6 @@ class Robot():
             start = time.time()
         self.state.can_shoot = False
         self.state.cant_shoot_time = start
-=======
-    def disable_moving(self, time_=None):
-        if not time_:
-            time_ = time.time()
-        self.state.can_move = False
-        self.state.cant_move_time = time_
-
-    def disable_shooting(self, time_=None):
-        if not time_:
-            time_ = time.time()
-        self.state.can_shoot = False
-        self.state.cant_shoot_time = time_
->>>>>>> ca20f0a60580d47e1478e2759b42ac17383477b3
 
     def disdisable_moving(self,):
         self.state.can_move = True
