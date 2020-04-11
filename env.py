@@ -114,19 +114,25 @@ class RMAI_GAME():
             # 4.1 funcional areas
             for f in self.map.fareas:
                 if f.inside(robo.state.pose.chassis_pose.x, robo.state.pose.chassis_pose.y):
+                    # print ("x: {}, y: {}".format(f.x, f.y))
+                    # print ("robox: {}, roboy: {}".format(robo.state.pose.chassis_pose.x, robo.state.pose.chassis_pose.y))
                     if f.type == map.Region.FREE:
                         pass
                     elif f.type == map.Region.REDBULLET:
                         self.robots[('RED', 0)].add_bullet()
+                        print("add red bullet")
                         f.set_type(map.Region.FREE)
                     elif f.type == map.Region.BLUEBULLET:
                         self.robots[('BLUE', 0)].add_bullet()
+                        print("add blue bullet")
                         f.set_type(map.Region.FREE)
                     elif f.type == map.Region.REDHEALTH:
                         self.robots[('RED', 0)].add_health()
+                        print("add red health")
                         f.set_type(map.Region.FREE)
                     elif f.type == map.Region.BULEHEALTH:
                         self.robots[('BLUE', 0)].add_health()
+                        print("add blue health")
                         f.set_type(map.Region.FREE)
                     elif f.type == map.Region.NOMOVING:
                         robo.disable_moving(self.time)
@@ -153,8 +159,9 @@ class RMAI_GAME():
               # 4.4.1 heating damage
             if robo.state.heat > 240:
                 robo.add_health(-(robo.state.heat - 240) * 4 ) 
+                print("over heat")
             elif robo.state.heat > 360:
-                robo.add_health(-(robo.state.heat - 360) * 40) 
+                robo.add_health(-(robo.state.heat - 360) * 36) 
                 robo.state.heat = 360
             
             # 4.5 kill dead robot

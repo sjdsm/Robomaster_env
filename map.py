@@ -28,7 +28,7 @@ class Rectangle():
 
     def inside(self, pointx, pointy):
         if pointx > self.x[0] and pointx < self.x[1]:
-            if pointy > self.y[0] and pointx < self.y[1]:
+            if pointy > self.y[0] and pointy < self.y[1]:
                 return True
         return False
 

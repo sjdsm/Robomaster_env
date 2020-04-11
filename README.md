@@ -9,6 +9,8 @@ ROS kinetic
 
 ros navigation package (probably)
 
+$ pip install interval
+
 # run
 
 catkin_make
