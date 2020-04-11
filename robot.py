@@ -31,7 +31,7 @@ class RobotPose():
         self.chassis_speed = Twist()
         # gimbal pose: theta, w, dw
         self.gimbal_pose = Point()
-        
+        self.armor_dis = math.sqrt(100**2 + 300**2)
         self.armor_angle = math.atan(1/3) # 200/2/300   armor size: 200 * 200
         self.armor_set()
     def armor_set(self):
