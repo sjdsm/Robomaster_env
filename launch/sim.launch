@@ -1,0 +1,20 @@
+<launch>
+<arg name="drone_number"    default="1"/>
+<arg name="simulation"      default="true"/>
+<arg name="yaw"             default="true"/>
+
+<!-- Simulator -->
+<node pkg="sim_roborts" type="sim_env" name="sim_env" output="screen" respawn="true">
+    <!-- <rosparam command="load" file="$(find Robomaster_env)/params/sim.yaml" /> -->
+
+    <param name="InputTopic"  value="/sim/input"/>
+    <param name="OutputTopic"     value="/sim/output"/>
+    <param name="CommandTopic"  value="/robot_command"/>
+
+    <!-- <remap from="~global_map" to="/random_complex/global_map"/>
+    <remap from="~global_ground" to="/random_complex/global_ground"/>
+    <remap from="~local_map"  to="/click_obstacle_generation/click_new_obs"/>
+    <remap from="~odometry"   to="/drone_1/visual_slam/odom"/> -->
+</node>
+
+</launch>

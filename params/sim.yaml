@@ -1,0 +1,3 @@
+InputTopic:                  "/sim/input"
+OutputTopic:                   "/sim/output"
+CommandTopic:               "/robot_command"
