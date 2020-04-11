@@ -36,18 +36,18 @@ class RobotPose():
         self.armor_set()
     def armor_set(self):
         # armor dict: Coordinates of armor borders   #  [[left_x,left_y],[right_x,right_y], normal vector angle]  normal vector angle:[0-2pi]
-        self.armor={'FRONT':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta+self.armor_angle)],
-                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta-self.armor_angle)],
-                             self.chassis_pose.theta],
-                    'BACK':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta+math.pi+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta+math.pi+self.armor_angle)],
-                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta+math.pi-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta+math.pi-self.armor_angle)],
-                             self.chassis_pose.theta+math.pi if self.chassis_pose.theta<math.pi else self.chassis_pose.theta-math.pi],
-                     'LEFT':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta+math.pi/2+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta+math.pi/2+self.armor_angle)],
-                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta+math.pi/2-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta+math.pi/2-self.armor_angle)], 
-                             self.chassis_pose.theta+math.pi/2 if self.chassis_pose.theta<3/2*math.pi else self.chassis_pose.theta+math.pi/2-2*math.pi],
-                    'RIGHT':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta-math.pi/2+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta-math.pi/2+self.armor_angle)],
-                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.theta-math.pi/2-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.theta-math.pi/2-self.armor_angle)],
-                             self.chassis_pose.theta-math.pi/2 if self.chassis_pose.theta>1/2*math.pi else self.chassis_pose.theta-math.pi/2+2*math.pi]}
+        self.armor={'FRONT':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z+self.armor_angle)],
+                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z-self.armor_angle)],
+                             self.chassis_pose.z],
+                    'BACK':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z+math.pi+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z+math.pi+self.armor_angle)],
+                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z+math.pi-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z+math.pi-self.armor_angle)],
+                             self.chassis_pose.z+math.pi if self.chassis_pose.z<math.pi else self.chassis_pose.z-math.pi],
+                     'LEFT':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z+math.pi/2+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z+math.pi/2+self.armor_angle)],
+                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z+math.pi/2-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z+math.pi/2-self.armor_angle)], 
+                             self.chassis_pose.z+math.pi/2 if self.chassis_pose.z<3/2*math.pi else self.chassis_pose.z+math.pi/2-2*math.pi],
+                    'RIGHT':[[self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z-math.pi/2+self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z-math.pi/2+self.armor_angle)],
+                             [self.chassis_pose.x+self.armor_dis*math.cos(self.chassis_pose.z-math.pi/2-self.armor_angle),self.chassis_pose.y+self.armor_dis*math.sin(self.chassis_pose.z-math.pi/2-self.armor_angle)],
+                             self.chassis_pose.z-math.pi/2 if self.chassis_pose.z>1/2*math.pi else self.chassis_pose.z-math.pi/2+2*math.pi]}
 class RobotState():
     def __init__(self, team=Team.BLUE, id=0, on=False, alive=False, position=[0,0,0]): # position: (x,y,theta)
         self.on = on      # do we have this robot in our simulator
@@ -102,7 +102,7 @@ class Robot():
                 for key, value in target.state.pose.armor.items():
                     dis_1 = distance((self.state.pose.chassis_pose.x, self.state.pose.chassis_pose.y), value[0])
                     dis_2 = distance((self.state.pose.chassis_pose.x, self.state.pose.chassis_pose.y), value[1])
-                    if abs(value[2] - self.state.pose.gimbal_pose.theta) > 1 / 2 * math.pi and self.state.laser_distance >= min(dis_1, dis_2):
+                    if abs(value[2] - self.state.pose.gimbal_pose.z) > 1 / 2 * math.pi and self.state.laser_distance >= min(dis_1, dis_2):
                         difference_left_x = value[0][0] - self.state.pose.chassis_pose.x
                         difference_left_y = value[0][1] - self.state.pose.chassis_pose.y
                         difference_right_x = value[1][0] - self.state.pose.chassis_pose.x
@@ -120,7 +120,7 @@ class Robot():
                             interval_right = math.atan(difference_right_y / (difference_right_x + 0.000001)) + 2 * math.pi
                         else:
                             interval_right = math.atan(difference_right_y / (difference_right_x + 0.000001)) + math.pi
-                        if self.state.pose.gimbal_pose.theta in Interval(interval_left, interval_right):
+                        if self.state.pose.gimbal_pose.z in Interval(interval_left, interval_right):
                             if key is 'FRONT':
                                 damage = -20
                             elif key is 'BACK':
