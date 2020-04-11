@@ -25,7 +25,7 @@ class Armor(Enum):
 
 
 class Team(Enum):
-    
+
     RED = 0
     BLUE = 1
 
@@ -95,18 +95,6 @@ class Robot():
         self.state.can_move = False
         self.state.can_shoot = False
     
-    def add_bullet(self, num=100):
-        if self.state.alive:
-            self.state.bullet += num
-        if self.ally.state.alive == True:
-            self.ally.state.bullet += num
-
-    def add_health(self, num=200):
-        if self.state.alive:
-            self.state.health += num
-        if self.ally.state.alive == True:
-            self.ally.state.bullet += num
-        
     def shoot(self, velocity=20):
         self.shoot_command = 0
         if self.state.can_shoot:
@@ -144,6 +132,18 @@ class Robot():
             self.state.bullet -= 1
             self.state.heat += velocity
 
+    def add_bullet(self, num=100):
+        if self.state.alive:
+            self.state.bullet += num
+        if self.ally.state.alive == True:
+            self.ally.state.bullet += num
+
+    def add_health(self, num=200):
+        if self.state.alive:
+            self.state.health += num
+        if self.ally.state.alive == True:
+            self.ally.state.bullet += num
+
     def disable_moving(self, time):
         self.state.can_move = False
         self.state.cant_move_time = time
@@ -160,5 +160,19 @@ class Robot():
         self.state.can_shoot = True
         self.state.cant_shoot_time = 0
 
+    def set_bullet(self, num):
+        num = int(num)
+        if num < 0:
+            return
+        self.state.bullet = num
 
-    #def set_pose
+    def set_health(self, num):
+        num = int(num)
+        if num <= 0:
+            num = 0
+        else:
+            self.state.alive = True
+        self.state.health = num
+
+    # no need to set heat
+    # def set_pose
