@@ -13,9 +13,7 @@ import time
 # from nav_msgs.msg import Odometry
 from robomaster_env.msg import env_input, env_output, vel_command_stack, robot_output
 
-
 DURATION = 180 # length of a game
-
 EPOCH = 0.1
 MAX_LASER_DISTANCE = 1000
 
@@ -26,6 +24,8 @@ def thread_job():
 class RMAI_GAME():
 
     def __init__(self):
+
+        global EPOCH
 
         self.duration = DURATION
         self.start_time = time.time()
@@ -62,6 +62,7 @@ class RMAI_GAME():
         self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 1)])
 
         rospy.init_node('sim_env', anonymous=True)
+        EPOCH = rospy.get_param("~epoch")
         rospy.Subscriber(rospy.get_param("~InputTopic"), env_input, self.gazebo_callback, tcp_nodelay=True)
         # command input, shooting command needed
         rospy.Subscriber(rospy.get_param("~CommandTopic"), vel_command_stack, self.vel_command_callback, tcp_nodelay=True)
@@ -165,13 +166,13 @@ class RMAI_GAME():
             new_heat = robo.state.heat - cooldown_value * EPOCH
             robo.state.heat = max(new_heat, 0)
            
-        print("1: ", time.time() - self.time)
-
         self.publish_all()
 
         done = self.done()
+
         # ignore: collision punishment
-        print("2: ", time.time() - self.time)
+
+        #print("1: ", time.time() - self.time)
         return done
 
     def done(self):
@@ -268,7 +269,7 @@ class RMAI_GAME():
             robot_info.heat = robot.state.heat
 
             robot_info.chassis_odom.pose.pose.position = robot.state.pose.chassis_pose
-            print(robot_info.chassis_odom.pose.pose.position)
+            # print(robot_info.chassis_odom.pose.pose.position)
             robot_info.chassis_odom.twist.twist = robot.state.pose.chassis_speed
             robot_info.gimbal_odom = robot.state.pose.gimbal_pose
 
@@ -278,10 +279,8 @@ class RMAI_GAME():
 
 
 if __name__ == "__main__":
-    global EPOCH
 
     game = RMAI_GAME()
-    EPOCH = rospy.get_param("~epoch")
     while not rospy.is_shutdown():
         game.step()
         rospy.sleep(EPOCH)                   
