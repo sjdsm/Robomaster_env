@@ -18,8 +18,11 @@ MAX_LASER_DISTANCE = 1000
 def thread_job():
     rospy.spin()
     
+
 class RMAI_GAME():
+
     def __init__(self):
+
         self.duration = DURATION
         self.start_time = time.time()
         self.passed_time = 0
@@ -54,21 +57,20 @@ class RMAI_GAME():
         self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 0)])
         self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 1)])
 
-        rospy.init_node('gym_env', anonymous=True)
-
-        rospy.Subscriber("/Topic_param1", env_input, self.gazebo_callback, tcp_nodelay=True)
+        rospy.init_node('sim_env', anonymous=True)
+        rospy.Subscriber(rospy.get_param("InputTopic"), env_input, self.gazebo_callback, tcp_nodelay=True)
         # command input, shooting command needed
-        rospy.Subscriber("/Topic_param2", vel_command_stack, self.vel_command_callback, tcp_nodelay=True)
+        rospy.Subscriber(rospy.get_param("OutputTopic"), vel_command_stack, self.vel_command_callback, tcp_nodelay=True)
 
         # to user
-        self.info_pub = rospy.Publisher('/Topic_param3', env_output, queue_size=10)
-        # to gazebo, robot alive or not, can move or not
-        self.condition_pub = rospy.Publisher('/Topic_param4', output_to_gazebo, queue_size=10)
+        self.info_pub = rospy.Publisher(rospy.get_param("CommandTopic"), env_output, queue_size=10)
+        # # to gazebo, robot alive or not, can move or not
+        # self.condition_pub = rospy.Publisher('/Topic_param4', output_to_gazebo, queue_size=10)
 
         add_thread = threading.Thread(target = thread_job)
         add_stread.start()
 
-    def step(self):# default order: red0,red1,blue0,blue1
+    def step(self):
         '''
         linear_speeds: linear speed of 4 robots' chassis, default = 0
         angular_speeds: angular_speeds speed of 4 robots' chassis, default = 0

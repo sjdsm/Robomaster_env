@@ -5,7 +5,8 @@
 
 
 ## TODO
-1. add relative requirements to cmakelist and package.xml
+1. add relative requirements to cmakelist and package.xml (finished)
+2. transfer node
 
 ## ENV
 1. subscribe two topics:
