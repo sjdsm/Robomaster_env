@@ -78,7 +78,7 @@ class RMAI_GAME():
         # 1. send velocities to physical simulator
 
         # 2. update everything (using gazebo callback)
-
+        self.time = time.time()
 
         # 3. reset map if needed
         self.passed_time = time.time()-self.start_time
@@ -123,10 +123,10 @@ class RMAI_GAME():
                         self.robots[('BLUE', 0)].add_health()
                         f.set_type(map.Region.FREE)
                     elif f.type == map.Region.NOMOVING:
-                        robo.disable_moving(time.time())
+                        robo.disable_moving(self.time())
                         f.set_type(map.Region.FREE)
                     else:
-                        robo.disable_shooting(time.time())
+                        robo.disable_shooting(self.time())
                         f.set_type(map.Region.FREE) 
 
                     break  
@@ -173,7 +173,7 @@ class RMAI_GAME():
             return True       
 
     def reset(self):
-        self.time = 0
+        self.time = time.time()
         self.passed_time = 0
         self.map.reset()
                        

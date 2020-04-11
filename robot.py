@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
+import time
 from enum import Enum
 import math
 # pip install interval
@@ -146,11 +147,15 @@ class Robot():
         if self.ally.state.alive == True:
             self.ally.state.bullet += num
 
-    def disable_moving(self, time):
+    def disable_moving(self, time=None):
+        if not time:
+            time = time.time()
         self.state.can_move = False
         self.state.cant_move_time = time
 
-    def disable_shooting(self, time):
+    def disable_shooting(self, time=None):
+        if not time:
+            time = time.time()
         self.state.can_shoot = False
         self.state.cant_shoot_time = time
 
