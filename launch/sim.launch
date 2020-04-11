@@ -4,12 +4,13 @@
 <arg name="yaw"             default="true"/>
 
 <!-- Simulator -->
-<node pkg="sim_roborts" type="sim_env" name="sim_env" output="screen" respawn="true">
+<node pkg="robomaster_env" type="env.py" name="sim_env" output="screen" respawn="false">
     <!-- <rosparam command="load" file="$(find Robomaster_env)/params/sim.yaml" /> -->
 
     <param name="InputTopic"  value="/sim/input"/>
     <param name="OutputTopic"     value="/sim/output"/>
     <param name="CommandTopic"  value="/robot_command"/>
+    <param name="epoch"  value="0.1"/>
 
     <!-- <remap from="~global_map" to="/random_complex/global_map"/>
     <remap from="~global_ground" to="/random_complex/global_ground"/>

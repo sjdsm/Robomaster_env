@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+#coding=utf-8
 import numpy as np
 from enum import Enum
 
 MAP_LENGTH = 8.1
-MAP_WIDTH = 5.1
+MAP_WIDTH = 4.5
 RANDOMSEED = 0
 
 class Region(Enum):
@@ -37,23 +38,46 @@ class Rectangle():
 def build_map():
     # TODO: 把障碍物加进去， 包括地图四个边缘
     obstacle_list = []
-    for location in ():
+    obstacles = [   # edge
+                    [0, 0, 0.01, 4.5],
+                    [0, 0, 8.1, 0.01],
+                    [0, 4.49, 8.1, 0.01],
+                    [8.09, 0, 0.01, 4.5],
+                    # obstacles
+                    [1.51, 0.01, 0.2, 1.0],
+                    [6.39, 3.49, 0.2, 1.0],
+                    [3.55, 0.945, 1.0, 0.2],
+                    [3.55, 3.555, 1.0, 0.2],
+                    [0.1, 3.29, 1, 0.2],
+                    [7.09, 1.01, 1, 0.2],
+                    [1.51, 2.15, 0.68, 0.2],
+                    [5.91, 2.15, 0.68, 0.2],
+                    [3.9, 2.1, 0.3, 0.3]
+                ]
+    for location in obstacles:
         obstacle_list.append(Rectangle(location))
     #TODO: 把加成区加进去
-    F_list = []
-    for location in ():
-        F_list.append(Rectangle(location, type=Region.FREE))
+    f_list = []
+    fs = [[0.24, 2.56, 0.54, 0.48],
+        [7.32, 1.46, 0.54, 0.48],
+        [1.64, 1.42, 0.54, 0.48],
+        [5.92, 2.60, 0.54, 0.48],
+        [3.78, 0.215, 0.54, 0.48],
+        [3.78, 3.805, 0.54, 0.48]
+    ]
+    for location in fs:
+        f_list.append(Rectangle(location, type=Region.FREE))
     # all funtional areas
     boot_areas = []
-    for location in ((0,0,1,1),(7.1,0,1,1),(0,4.1,1,1),(7.1,4.1,1,1)):
+    for location in ((0.01 ,0.01 ,1,1), (7.09, 0.01, 1, 1), (0.01 , 3.49 ,1,1), (7.09, 3.49, 1, 1)):
         boot_areas.append(Rectangle(location, type=Region.FREE))   # red0, red1, blue0, blue1
-    
-    return obstacle_list, F_list, boot_areas
+
+    return obstacle_list, f_list, boot_areas
 
 class RM_map():
     def __init__(self):
         self.length = 8.1
-        self.width = 5.1
+        self.width = 4.5
         self.obstacles, self.fareas, self.bootareas = build_map()
 
     def randomlize(self):    

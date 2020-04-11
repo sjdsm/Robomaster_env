@@ -1,18 +1,22 @@
 #!/usr/bin/env python
+#coding=utf-8
 import threading
+import rospy
 from enum import Enum
 import map
 from robot import Armor, Team, RobotState, Robot, RobotPose
+from geometry_msgs.msg import Pose, Point
+from std_msgs.msg import Int8
 
 import time
 # from geometry_msgs.msg import Pose, Twist, Point
 # from nav_msgs.msg import Odometry
-from roborts_msgs.msg import env_input, env_output, vel_command_stack, output_to_gazebo, vel_command_stack
+from robomaster_env.msg import env_input, env_output, vel_command_stack, robot_output
 
 
 DURATION = 180 # length of a game
 
-FREQUENCY = 10
+EPOCH = 0.1
 MAX_LASER_DISTANCE = 1000
 
 def thread_job():
@@ -35,13 +39,13 @@ class RMAI_GAME():
         self.robots = { ("RED", 0): Robot(Team.RED, id=0), 
                         ("RED", 1): Robot(Team.RED, id=1), 
                         ("BLUE", 0): Robot(Team.BLUE, id=0), 
-                        ("BLUE", 1): Robot(Team.BLUE, id=1)]
+                        ("BLUE", 1): Robot(Team.BLUE, id=1)}
         
         # set initial position in boot areas
 
         for i, j in enumerate(self.robots):
             boot = self.map.bootareas[i]
-            self.robots[j].state.pose = Pose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
+            self.robots[j].state.pose.chassis_pose = Point((boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0)
         
         self.robots[('BLUE', 0)].ally = self.robots[('BLUE', 1)]
         self.robots[('BLUE', 1)].ally = self.robots[('BLUE', 0)]
@@ -58,17 +62,17 @@ class RMAI_GAME():
         self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 1)])
 
         rospy.init_node('sim_env', anonymous=True)
-        rospy.Subscriber(rospy.get_param("InputTopic"), env_input, self.gazebo_callback, tcp_nodelay=True)
+        rospy.Subscriber(rospy.get_param("~InputTopic"), env_input, self.gazebo_callback, tcp_nodelay=True)
         # command input, shooting command needed
-        rospy.Subscriber(rospy.get_param("OutputTopic"), vel_command_stack, self.vel_command_callback, tcp_nodelay=True)
+        rospy.Subscriber(rospy.get_param("~CommandTopic"), vel_command_stack, self.vel_command_callback, tcp_nodelay=True)
 
         # to user
-        self.info_pub = rospy.Publisher(rospy.get_param("CommandTopic"), env_output, queue_size=10)
+        self.info_pub = rospy.Publisher(rospy.get_param("~OutputTopic"), env_output, queue_size=10)
         # # to gazebo, robot alive or not, can move or not
         # self.condition_pub = rospy.Publisher('/Topic_param4', output_to_gazebo, queue_size=10)
 
         add_thread = threading.Thread(target = thread_job)
-        add_stread.start()
+        add_thread.start()
 
     def step(self):
         '''
@@ -91,13 +95,12 @@ class RMAI_GAME():
         self.red_alive = False
         self.blue_alive = False
 
-        for i, idx in enumerate(self.robots):
-            robo = self.robots[idx]
-                       
+        for key, robo in self.robots.items():
+       
             # 4.0 survival state
             if robo.state.alive == False:
                 continue
-            elif idx[0] == 'BLUE':
+            elif key[0] == 'BLUE':
                 self.blue_alive = True
             else:
                 self.red_alive = True
@@ -108,8 +111,8 @@ class RMAI_GAME():
             robo.state.pose.armor_set()
 
             # 4.1 funcional areas
-             for f in self.map.fareas:
-                if f.inside(robo.state.pose.x, robo.state.pose.y):
+            for f in self.map.fareas:
+                if f.inside(robo.state.pose.chassis_pose.x, robo.state.pose.chassis_pose.y):
                     if f.type == map.Region.FREE:
                         pass
                     elif f.type == map.Region.REDBULLET:
@@ -121,14 +124,14 @@ class RMAI_GAME():
                     elif f.type == map.Region.REDHEALTH:
                         self.robots[('RED', 0)].add_health()
                         f.set_type(map.Region.FREE)
-                    elif f.type == map.Region.BLUEHEALTH:
+                    elif f.type == map.Region.BULEHEALTH:
                         self.robots[('BLUE', 0)].add_health()
                         f.set_type(map.Region.FREE)
                     elif f.type == map.Region.NOMOVING:
-                        robo.disable_moving(self.time())
+                        robo.disable_moving(self.time)
                         f.set_type(map.Region.FREE)
                     else:
-                        robo.disable_shooting(self.time())
+                        robo.disable_shooting(self.time)
                         f.set_type(map.Region.FREE) 
 
                     break  
@@ -142,7 +145,7 @@ class RMAI_GAME():
                     robo.disdisable_shooting()
                        
             # 4.3 shooting
-            if robo.shoot_commandand and robo.state.laser_distance < MAX_LASER_DISTANCE:
+            if robo.shoot_command and robo.state.laser_distance < MAX_LASER_DISTANCE:
                 robo.shoot()                       
 
             # 4.4 health update
@@ -159,12 +162,16 @@ class RMAI_GAME():
                 
             # 4.6 heat cooldown
             cooldown_value = 240 if robo.state.health < 400 else 120
-            robo.state.heat = robo.state.heat > cooldown_value / FREQUENCY and robo.state.heat - cooldown_value / FREQUENCY or 0
-            
+            new_heat = robo.state.heat - cooldown_value * EPOCH
+            robo.state.heat = max(new_heat, 0)
+           
+        print("1: ", time.time() - self.time)
+
         self.publish_all()
 
         done = self.done()
         # ignore: collision punishment
+        print("2: ", time.time() - self.time)
         return done
 
     def done(self):
@@ -179,10 +186,10 @@ class RMAI_GAME():
         self.passed_time = 0
         self.map.reset()
                        
-        self.robots = {("RED", 0): Robot(Team.RED, num=0), 
-                       ("RED", 1): Robot(Team.RED, num=1), 
-                       ("BLUE", 0): Robot(Team.BLUE, num=0), 
-                       ("BLUE", 1): Robot(Team.BLUE, num=1)]     
+        self.robots = {("RED", 0): Robot(Team.RED, id=0), 
+                       ("RED", 1): Robot(Team.RED, id=1), 
+                       ("BLUE", 0): Robot(Team.BLUE, id=0), 
+                       ("BLUE", 1): Robot(Team.BLUE, id=1)}
 #         for i, j in enumerate(self.robots):
 #             boot = self.map.bootareas[i]
 #             self.robots[j].state.pose = RobotPose(position=[(boot.x[0] + boot.x[1]) / 2, (boot.y[0] + boot.y[1]) / 2, 0])
@@ -231,8 +238,8 @@ class RMAI_GAME():
             if robot:
                 robot.shoot_command = msg.shoot
 
-    def publish_vel_command(self, data):
-        self.condition_pub.publish(data)
+    # def publish_vel_command(self, data):
+    #     self.condition_pub.publish(data)
 
     def publish_info(self, data):
         self.info_pub.publish(data)
@@ -243,11 +250,11 @@ class RMAI_GAME():
         info.map = []
         info.robot_infos = []
         for i in self.map.fareas:
-            info.map.append(Int8((i.type.value - 2)))
+            info.map.append(int((i.type.value - 2)))
 
-        for idx in self.robots:
-            robot = self.robots[idx]
-            robot_key = idx[0] + ' ' + str(int(idx[1]))
+        for key, robot in self.robots.items():
+
+            robot_key = key[0] + ' ' + str(int(key[1]))
 
             robot_info = robot_output()
             robot_info.frame_id = robot_key
@@ -261,6 +268,7 @@ class RMAI_GAME():
             robot_info.heat = robot.state.heat
 
             robot_info.chassis_odom.pose.pose.position = robot.state.pose.chassis_pose
+            print(robot_info.chassis_odom.pose.pose.position)
             robot_info.chassis_odom.twist.twist = robot.state.pose.chassis_speed
             robot_info.gimbal_odom = robot.state.pose.gimbal_pose
 
@@ -270,9 +278,11 @@ class RMAI_GAME():
 
 
 if __name__ == "__main__":
+    global EPOCH
+
     game = RMAI_GAME()
-    epoch = 1 / FREQUENCY
+    EPOCH = rospy.get_param("~epoch")
     while not rospy.is_shutdown():
         game.step()
-        rospy.sleep(epoch)                   
+        rospy.sleep(EPOCH)                   
 
