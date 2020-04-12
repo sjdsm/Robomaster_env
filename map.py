@@ -37,11 +37,11 @@ class Rectangle():
 def build_map():
     # TODO: 把障碍物加进去， 包括地图四个边缘
     obstacle_list = []
-    for location in ():
+    for location in ((0,3.85,1,0.25),(1.5,0,0.25,1),(3.6,1,1,0.25),(7.1,1,1,0.25),(6.35,7.1,0.25,1),(3.5,3.85,1,0.25),(1.5,2.425,0.8,0.25),(5.8,2.425,0.8,0.25)):# 9th to append
         obstacle_list.append(Rectangle(location))
     #TODO: 把加成区加进去
     F_list = []
-    for location in ():
+    for location in ((0.23,3.12,0.54,0.48),(1.63,1.695,0.54,0.48), (3.83,0.27,0.54,0.48),(7.33,1.5,0.54,0.48),(6.93,2.925,0.54,0.48),(3.73,4.35,0.54,0.48)):
         F_list.append(Rectangle(location, type=Region.FREE))
     # all funtional areas
     boot_areas = []
@@ -59,6 +59,7 @@ class RM_map():
     def randomlize(self):    
         global RANDOMSEED
         RANDOMSEED += 1
+
         np.random.seed(RANDOMSEED)
         # random seed
         order = np.array(range(6))
