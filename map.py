@@ -38,7 +38,7 @@ class Rectangle():
 def build_map():
     # TODO: 把障碍物加进去， 包括地图四个边缘
     obstacle_list = []
-    obstacles = [   # edge
+    obstacles = (   # edge
                     [0, 0, 0.01, 4.5],
                     [0, 0, 8.1, 0.01],
                     [0, 4.49, 8.1, 0.01],
@@ -53,18 +53,18 @@ def build_map():
                     [1.51, 2.15, 0.68, 0.2],
                     [5.91, 2.15, 0.68, 0.2],
                     [3.9, 2.1, 0.3, 0.3]
-                ]
+                )
     for location in obstacles:
         obstacle_list.append(Rectangle(location))
     #TODO: 把加成区加进去
     f_list = []
-    fs = [[0.24, 2.56, 0.54, 0.48],
+    fs = ([0.24, 2.56, 0.54, 0.48],
         [7.32, 1.46, 0.54, 0.48],
         [1.64, 1.42, 0.54, 0.48],
         [5.92, 2.60, 0.54, 0.48],
         [3.78, 0.215, 0.54, 0.48],
         [3.78, 3.805, 0.54, 0.48]
-    ]
+    )
     for location in fs:
         f_list.append(Rectangle(location, type=Region.FREE))
     # all funtional areas

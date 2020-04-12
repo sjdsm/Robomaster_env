@@ -67,6 +67,8 @@ class RMAI_GAME():
         self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 0)])
         self.robots[('RED', 1)].enemies.append(self.robots[('BLUE', 1)])
 
+        self.minute_flag = [1,0,0]
+
         rospy.init_node('sim_env', anonymous=True)
         EPOCH = rospy.get_param("~epoch")
         rospy.Subscriber(rospy.get_param("~InputTopic"), env_input, self.gazebo_callback, tcp_nodelay=True)
@@ -95,8 +97,11 @@ class RMAI_GAME():
 
         # 3. reset map if needed
         self.passed_time = time.time()-self.start_time
-        if self.passed_time // 60 == 1 or 2:
+        minute = min(2, int(self.passed_time / 60))
+        if not self.minute_flag[minute]:
             self.map.randomlize()
+            print("update map areas")
+            self.minute_flag[minute] = 1
         
         # 4. step robot
         self.red_alive = False
@@ -196,9 +201,12 @@ class RMAI_GAME():
             return True       
 
     def reset(self):
-        self.time = time.time()
+
+        print("RESET GAME")
+        self.start_time = time.time()
         self.passed_time = 0
         self.map.reset()
+        self.minute_flag = [1,0,0]
                        
         self.robots = {("RED", 0): Robot(Team.RED, id=0), 
                        ("RED", 1): Robot(Team.RED, id=1), 
@@ -558,8 +566,6 @@ class UI:
 
 if __name__ == "__main__":
 
-    print ( time.time() )
-
     game = RMAI_GAME()
 
     # UI thread
@@ -567,6 +573,8 @@ if __name__ == "__main__":
     add_ui_thread.start()
 
     while not rospy.is_shutdown():
-        game.step()
+        done = game.step()
+        if done:
+            game.reset()
         rospy.sleep(EPOCH)                   
 
