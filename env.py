@@ -236,7 +236,7 @@ class RMAI_GAME():
                 laser distance
         '''
 
-        for i, msg in enumerate(data):
+        for i, msg in enumerate(data.infos):
             header = msg.header.frame_id.split()
             robot_key = (header[0], int(header[1]))
             
