@@ -6,7 +6,7 @@ from enum import Enum
 import map
 from robot import Armor, Team, RobotState, Robot, RobotPose
 from geometry_msgs.msg import Pose, Point
-from std_msgs.msg import Int8
+# from std_msgs.msg import Int8
 
 import time
 # from geometry_msgs.msg import Pose, Twist, Point
@@ -276,10 +276,10 @@ class RMAI_GAME():
 
         for key, robot in self.robots.items():
 
-            robot_key = key[0] + ' ' + str(int(key[1]))
+            robot_key = key[0] + '_' + str(int(key[1]))
 
             robot_info = robot_output()
-            robot_info.frame_id = robot_key
+            robot_info.robot_id = robot_key
 
             robot_info.alive = robot.state.alive
             robot_info.movable = robot.state.can_move

@@ -13,4 +13,4 @@ robot_output[] robot_infos
 # 4: bule_health
 # 5: no_move
 # 6: no_shoot
-uint8[]  map
+int8[]  map

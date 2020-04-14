@@ -69,7 +69,7 @@ def build_map():
         f_list.append(Rectangle(location, type=Region.FREE))
     # all funtional areas
     boot_areas = []
-    for location in ((0.01 ,0.01 ,1,1), (7.09, 0.01, 1, 1), (0.01 , 3.49 ,1,1), (7.09, 3.49, 1, 1)):
+    for location in ((7.09, 0.01, 1, 1), (7.09, 3.49, 1, 1), (0.01 ,0.01 ,1,1),  (0.01 , 3.49 ,1,1)):
         boot_areas.append(Rectangle(location, type=Region.FREE))   # red0, red1, blue0, blue1
 
     return obstacle_list, f_list, boot_areas
