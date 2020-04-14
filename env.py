@@ -237,7 +237,7 @@ class RMAI_GAME():
         '''
 
         for i, msg in enumerate(data.infos):
-            header = msg.header.frame_id.split()
+            header = msg.header.frame_id.split("_")
             robot_key = (header[0], int(header[1]))
             
             robot = self.robots.get(robot_key, None)
@@ -252,8 +252,8 @@ class RMAI_GAME():
         update: shoot command
         '''
 
-        for i, msg in enumerate(data):
-            header = msg.header.frame_id.split()
+        for i, msg in enumerate(data.vels):
+            header = msg.header.frame_id.split("_")
             robot_key = (header[0], int(header[1]))       
             robot = self.robots.get(robot_key, None)
 
